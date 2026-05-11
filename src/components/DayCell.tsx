@@ -1,10 +1,10 @@
-import React, { useMemo } from "react";
-import { Pressable, View, Text, StyleSheet } from "react-native";
-import { useTheme } from "../hooks/useTheme";
-import { ThemeColors } from "../constants/colors";
+import React, { useMemo } from 'react';
+import { Pressable, View, Text, StyleSheet } from 'react-native';
+import { useTheme } from '../hooks/useTheme';
+import { ThemeColors } from '../constants/colors';
 
 interface DayCellProps {
-  status: "completed" | "missed_twice" | "empty";
+  status: 'completed' | 'missed_twice' | 'empty';
   label?: string; // Day number
   size?: number;
   /** Render a small dot in the corner if a note exists for this day */
@@ -20,16 +20,13 @@ interface DayCellProps {
   tappableHint?: boolean;
 }
 
-function getCellColor(
-  status: DayCellProps["status"],
-  colors: ThemeColors
-): string {
+function getCellColor(status: DayCellProps['status'], colors: ThemeColors): string {
   switch (status) {
-    case "completed":
+    case 'completed':
       return colors.cellCompleted;
-    case "missed_twice":
+    case 'missed_twice':
       return colors.cellMissedTwice;
-    case "empty":
+    case 'empty':
       return colors.cellEmpty;
   }
 }
@@ -47,16 +44,16 @@ export function DayCell({
     () =>
       StyleSheet.create({
         cell: {
-          alignItems: "center",
-          justifyContent: "center",
+          alignItems: 'center',
+          justifyContent: 'center',
           margin: 2,
-          position: "relative",
+          position: 'relative',
         },
         label: {
-          fontWeight: "600",
+          fontWeight: '600',
         },
         noteDot: {
-          position: "absolute",
+          position: 'absolute',
           top: 4,
           right: 4,
           width: 3,
@@ -65,13 +62,13 @@ export function DayCell({
           opacity: 0.55,
         },
       }),
-    [colors]
+    [colors],
   );
 
   const backgroundColor = getCellColor(status, colors);
   // Empty-status cells in backfill mode get a faint dashed outline so the
   // user sees they're interactive. Colored cells already read as buttons.
-  const showHint = tappableHint && status === "empty";
+  const showHint = tappableHint && status === 'empty';
   const cellStyle = [
     styles.cell,
     {
@@ -80,8 +77,8 @@ export function DayCell({
       borderRadius: 6,
       backgroundColor,
       borderWidth: showHint ? 1 : 0,
-      borderColor: showHint ? colors.accent : "transparent",
-      borderStyle: showHint ? ("dashed" as const) : ("solid" as const),
+      borderColor: showHint ? colors.accent : 'transparent',
+      borderStyle: showHint ? ('dashed' as const) : ('solid' as const),
     },
   ];
 
@@ -93,24 +90,14 @@ export function DayCell({
             styles.label,
             {
               fontSize: size * 0.35,
-              color:
-                status === "empty"
-                  ? colors.textMuted
-                  : colors.background,
+              color: status === 'empty' ? colors.textMuted : colors.background,
             },
           ]}
         >
           {label}
         </Text>
       ) : null}
-      {hasNote && (
-        <View
-          style={[
-            styles.noteDot,
-            { backgroundColor: colors.textSecondary },
-          ]}
-        />
-      )}
+      {hasNote && <View style={[styles.noteDot, { backgroundColor: colors.textSecondary }]} />}
     </>
   );
 

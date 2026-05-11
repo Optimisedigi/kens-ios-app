@@ -1,25 +1,17 @@
-import React, { useMemo } from "react";
-import {
-  View,
-  Text,
-  StyleSheet,
-  ScrollView,
-  Pressable,
-  Switch,
-  Alert,
-} from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
-import { useRouter } from "expo-router";
-import Constants from "expo-constants";
-import { useHabits } from "../../src/hooks/useHabits";
-import { useNotifications } from "../../src/hooks/useNotifications";
-import { useTheme } from "../../src/hooks/useTheme";
-import { getFrequencyLabel } from "../../src/types/habit";
-import { formatTime } from "../../src/components/TimePicker";
+import React, { useMemo } from 'react';
+import { View, Text, StyleSheet, ScrollView, Pressable, Switch, Alert } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { useRouter } from 'expo-router';
+import Constants from 'expo-constants';
+import { useHabits } from '../../src/hooks/useHabits';
+import { useNotifications } from '../../src/hooks/useNotifications';
+import { useTheme } from '../../src/hooks/useTheme';
+import { getFrequencyLabel } from '../../src/types/habit';
+import { formatTime } from '../../src/components/TimePicker';
 
 export default function SettingsScreen() {
   const { colors, themeName, setTheme } = useTheme();
-  const isDark = themeName === "dark";
+  const isDark = themeName === 'dark';
   const styles = useMemo(
     () =>
       StyleSheet.create({
@@ -34,7 +26,7 @@ export default function SettingsScreen() {
         },
         title: {
           fontSize: 28,
-          fontWeight: "bold",
+          fontWeight: 'bold',
           color: colors.textPrimary,
         },
         content: {
@@ -43,9 +35,9 @@ export default function SettingsScreen() {
         },
         sectionTitle: {
           fontSize: 13,
-          fontWeight: "600",
+          fontWeight: '600',
           color: colors.textMuted,
-          textTransform: "uppercase",
+          textTransform: 'uppercase',
           letterSpacing: 0.5,
           marginTop: 24,
           marginBottom: 8,
@@ -56,12 +48,12 @@ export default function SettingsScreen() {
           borderRadius: 14,
           borderWidth: 1,
           borderColor: colors.cardBorder,
-          overflow: "hidden",
+          overflow: 'hidden',
         },
         habitRow: {
-          flexDirection: "row",
-          alignItems: "center",
-          justifyContent: "space-between",
+          flexDirection: 'row',
+          alignItems: 'center',
+          justifyContent: 'space-between',
           padding: 14,
         },
         habitRowBorder: {
@@ -69,8 +61,8 @@ export default function SettingsScreen() {
           borderBottomColor: colors.separator,
         },
         habitInfo: {
-          flexDirection: "row",
-          alignItems: "center",
+          flexDirection: 'row',
+          alignItems: 'center',
           gap: 12,
           flex: 1,
         },
@@ -79,7 +71,7 @@ export default function SettingsScreen() {
         },
         habitName: {
           fontSize: 16,
-          fontWeight: "500",
+          fontWeight: '500',
           color: colors.textPrimary,
         },
         habitMeta: {
@@ -88,7 +80,7 @@ export default function SettingsScreen() {
           marginTop: 2,
         },
         habitActions: {
-          flexDirection: "row",
+          flexDirection: 'row',
           gap: 8,
         },
         editButton: {
@@ -100,7 +92,7 @@ export default function SettingsScreen() {
         editText: {
           color: colors.accent,
           fontSize: 13,
-          fontWeight: "600",
+          fontWeight: '600',
         },
         deleteButton: {
           paddingHorizontal: 12,
@@ -111,25 +103,25 @@ export default function SettingsScreen() {
         deleteText: {
           color: colors.danger,
           fontSize: 13,
-          fontWeight: "600",
+          fontWeight: '600',
         },
         emptyRow: {
           padding: 20,
-          alignItems: "center",
+          alignItems: 'center',
         },
         emptyText: {
           color: colors.textMuted,
           fontSize: 14,
         },
         settingRow: {
-          flexDirection: "row",
-          alignItems: "center",
-          justifyContent: "space-between",
+          flexDirection: 'row',
+          alignItems: 'center',
+          justifyContent: 'space-between',
           padding: 14,
         },
         settingLabel: {
           fontSize: 16,
-          fontWeight: "500",
+          fontWeight: '500',
           color: colors.textPrimary,
         },
         settingDescription: {
@@ -150,18 +142,18 @@ export default function SettingsScreen() {
         },
         aboutRow: {
           padding: 16,
-          alignItems: "center",
+          alignItems: 'center',
         },
         aboutTitle: {
           fontSize: 18,
-          fontWeight: "bold",
+          fontWeight: 'bold',
           color: colors.textPrimary,
           marginBottom: 6,
         },
         aboutDescription: {
           fontSize: 14,
           color: colors.textSecondary,
-          textAlign: "center",
+          textAlign: 'center',
           lineHeight: 20,
           marginBottom: 12,
         },
@@ -170,42 +162,35 @@ export default function SettingsScreen() {
           color: colors.textMuted,
         },
       }),
-    [colors]
+    [colors],
   );
 
   const router = useRouter();
   const { habits, deleteHabit } = useHabits();
-  const {
-    settings,
-    toggleNotifications,
-    permissionGranted,
-  } = useNotifications();
+  const { settings, toggleNotifications, permissionGranted } = useNotifications();
 
   const handleDeleteHabit = (id: string, name: string) => {
     Alert.alert(
-      "Delete Habit",
+      'Delete Habit',
       `Are you sure you want to delete "${name}"? This will remove all your history.`,
       [
-        { text: "Cancel", style: "cancel" },
+        { text: 'Cancel', style: 'cancel' },
         {
-          text: "Delete",
-          style: "destructive",
+          text: 'Delete',
+          style: 'destructive',
           onPress: () => deleteHabit(id),
         },
-      ]
+      ],
     );
   };
 
   return (
-    <SafeAreaView style={styles.container} edges={["top"]}>
+    <SafeAreaView style={styles.container} edges={['top']}>
       <View style={styles.header}>
         <Text style={styles.title}>Settings</Text>
       </View>
 
-      <ScrollView
-        contentContainerStyle={styles.content}
-        showsVerticalScrollIndicator={false}
-      >
+      <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
         {/* Habits Management */}
         <Text style={styles.sectionTitle}>Your Habits</Text>
         <View style={styles.section}>
@@ -217,24 +202,17 @@ export default function SettingsScreen() {
             habits.map((habit, index) => (
               <View
                 key={habit.id}
-                style={[
-                  styles.habitRow,
-                  index < habits.length - 1 && styles.habitRowBorder,
-                ]}
+                style={[styles.habitRow, index < habits.length - 1 && styles.habitRowBorder]}
               >
                 <View style={styles.habitInfo}>
                   <Text style={styles.habitEmoji}>{habit.emoji}</Text>
                   <View>
                     <Text style={styles.habitName}>{habit.name}</Text>
                     <Text style={styles.habitMeta}>
-                      {getFrequencyLabel(habit.frequency)} ·{" "}
-                      {habit.reminderHour !== null &&
-                      habit.reminderMinute !== null
-                        ? `reminder ${formatTime(
-                            habit.reminderHour,
-                            habit.reminderMinute
-                          )}`
-                        : "no reminder"}
+                      {getFrequencyLabel(habit.frequency)} ·{' '}
+                      {habit.reminderHour !== null && habit.reminderMinute !== null
+                        ? `reminder ${formatTime(habit.reminderHour, habit.reminderMinute)}`
+                        : 'no reminder'}
                     </Text>
                   </View>
                 </View>
@@ -263,13 +241,11 @@ export default function SettingsScreen() {
           <View style={styles.settingRow}>
             <View style={{ flex: 1, paddingRight: 12 }}>
               <Text style={styles.settingLabel}>Dark Mode</Text>
-              <Text style={styles.settingDescription}>
-                Switch between dark and light themes.
-              </Text>
+              <Text style={styles.settingDescription}>Switch between dark and light themes.</Text>
             </View>
             <Switch
               value={isDark}
-              onValueChange={(v) => setTheme(v ? "dark" : "light")}
+              onValueChange={(v) => setTheme(v ? 'dark' : 'light')}
               trackColor={{
                 false: colors.inputBackground,
                 true: colors.accent,
@@ -286,8 +262,7 @@ export default function SettingsScreen() {
             <View style={{ flex: 1, paddingRight: 12 }}>
               <Text style={styles.settingLabel}>Habit Reminders</Text>
               <Text style={styles.settingDescription}>
-                Each habit reminds you at its own time — set per
-                habit in Edit.
+                Each habit reminds you at its own time — set per habit in Edit.
               </Text>
             </View>
             <Switch
@@ -306,8 +281,7 @@ export default function SettingsScreen() {
               <View style={styles.divider} />
               <View style={styles.warningRow}>
                 <Text style={styles.warningText}>
-                  ⚠️ Notification permissions not granted. Enable
-                  them in your device settings.
+                  ⚠️ Notification permissions not granted. Enable them in your device settings.
                 </Text>
               </View>
             </>
@@ -320,14 +294,14 @@ export default function SettingsScreen() {
           <View style={styles.aboutRow}>
             <Text style={styles.aboutTitle}>Never Miss Twice</Text>
             <Text style={styles.aboutDescription}>
-              You can miss once, but never twice.{"\n"}
+              You can miss once, but never twice.{'\n'}
               Build consistency, not perfection.
             </Text>
             <Text style={styles.aboutVersion}>
-              Version {Constants.expoConfig?.version ?? "–"}
+              Version {Constants.expoConfig?.version ?? '–'}
               {Constants.expoConfig?.ios?.buildNumber
                 ? ` (${Constants.expoConfig.ios.buildNumber})`
-                : ""}
+                : ''}
             </Text>
           </View>
         </View>

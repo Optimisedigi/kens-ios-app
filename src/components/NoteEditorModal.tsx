@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState } from 'react';
 import {
   Modal,
   View,
@@ -8,11 +8,11 @@ import {
   Pressable,
   KeyboardAvoidingView,
   Platform,
-} from "react-native";
-import * as Haptics from "expo-haptics";
-import { useTheme } from "../hooks/useTheme";
-import { Habit } from "../types/habit";
-import { formatDisplayDate } from "../utils/dateUtils";
+} from 'react-native';
+import * as Haptics from 'expo-haptics';
+import { useTheme } from '../hooks/useTheme';
+import { Habit } from '../types/habit';
+import { formatDisplayDate } from '../utils/dateUtils';
 
 interface NoteEditorModalProps {
   visible: boolean;
@@ -37,11 +37,11 @@ export function NoteEditorModal({
       StyleSheet.create({
         backdrop: {
           flex: 1,
-          backgroundColor: "rgba(0,0,0,0.55)",
+          backgroundColor: 'rgba(0,0,0,0.55)',
         },
         center: {
           flex: 1,
-          justifyContent: "center",
+          justifyContent: 'center',
           paddingHorizontal: 20,
         },
         sheet: {
@@ -52,8 +52,8 @@ export function NoteEditorModal({
           borderColor: colors.cardBorder,
         },
         header: {
-          flexDirection: "row",
-          alignItems: "center",
+          flexDirection: 'row',
+          alignItems: 'center',
           marginBottom: 14,
           gap: 12,
         },
@@ -66,7 +66,7 @@ export function NoteEditorModal({
         habitName: {
           color: colors.textPrimary,
           fontSize: 16,
-          fontWeight: "600",
+          fontWeight: '600',
         },
         dateLabel: {
           color: colors.textMuted,
@@ -85,9 +85,9 @@ export function NoteEditorModal({
           marginBottom: 14,
         },
         buttonRow: {
-          flexDirection: "row",
+          flexDirection: 'row',
           gap: 8,
-          justifyContent: "flex-end",
+          justifyContent: 'flex-end',
         },
         btn: {
           paddingVertical: 10,
@@ -100,17 +100,17 @@ export function NoteEditorModal({
         btnGhostText: {
           color: colors.textSecondary,
           fontSize: 14,
-          fontWeight: "600",
+          fontWeight: '600',
         },
         btnDanger: {
-          backgroundColor: "transparent",
+          backgroundColor: 'transparent',
           borderWidth: 1,
           borderColor: colors.missed,
         },
         btnDangerText: {
           color: colors.missed,
           fontSize: 14,
-          fontWeight: "600",
+          fontWeight: '600',
         },
         btnPrimary: {
           backgroundColor: colors.accent,
@@ -118,24 +118,24 @@ export function NoteEditorModal({
         btnPrimaryText: {
           color: colors.textPrimary,
           fontSize: 14,
-          fontWeight: "600",
+          fontWeight: '600',
         },
       }),
-    [colors]
+    [colors],
   );
 
-  const [text, setText] = useState("");
+  const [text, setText] = useState('');
 
   // Re-seed when the modal opens for a different (habit, date)
   useEffect(() => {
     if (visible && habit && dateStr) {
-      setText(habit.notes[dateStr] ?? "");
+      setText(habit.notes[dateStr] ?? '');
     }
   }, [visible, habit, dateStr]);
 
   if (!habit || !dateStr) return null;
 
-  const existing = habit.notes[dateStr] ?? "";
+  const existing = habit.notes[dateStr] ?? '';
   const hasExisting = existing.length > 0;
 
   const handleSave = () => {
@@ -151,15 +151,10 @@ export function NoteEditorModal({
   };
 
   return (
-    <Modal
-      visible={visible}
-      transparent
-      animationType="fade"
-      onRequestClose={onClose}
-    >
+    <Modal visible={visible} transparent animationType="fade" onRequestClose={onClose}>
       <Pressable style={styles.backdrop} onPress={onClose}>
         <KeyboardAvoidingView
-          behavior={Platform.OS === "ios" ? "padding" : undefined}
+          behavior={Platform.OS === 'ios' ? 'padding' : undefined}
           style={styles.center}
         >
           <Pressable
@@ -173,9 +168,7 @@ export function NoteEditorModal({
                 <Text style={styles.habitName} numberOfLines={1}>
                   {habit.name}
                 </Text>
-                <Text style={styles.dateLabel}>
-                  {formatDisplayDate(dateStr)}
-                </Text>
+                <Text style={styles.dateLabel}>{formatDisplayDate(dateStr)}</Text>
               </View>
             </View>
 
@@ -192,24 +185,15 @@ export function NoteEditorModal({
             />
 
             <View style={styles.buttonRow}>
-              <Pressable
-                onPress={onClose}
-                style={[styles.btn, styles.btnGhost]}
-              >
+              <Pressable onPress={onClose} style={[styles.btn, styles.btnGhost]}>
                 <Text style={styles.btnGhostText}>Cancel</Text>
               </Pressable>
               {hasExisting && (
-                <Pressable
-                  onPress={handleDelete}
-                  style={[styles.btn, styles.btnDanger]}
-                >
+                <Pressable onPress={handleDelete} style={[styles.btn, styles.btnDanger]}>
                   <Text style={styles.btnDangerText}>Delete</Text>
                 </Pressable>
               )}
-              <Pressable
-                onPress={handleSave}
-                style={[styles.btn, styles.btnPrimary]}
-              >
+              <Pressable onPress={handleSave} style={[styles.btn, styles.btnPrimary]}>
                 <Text style={styles.btnPrimaryText}>Save</Text>
               </Pressable>
             </View>

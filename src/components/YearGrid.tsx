@@ -1,19 +1,9 @@
-import React, { useMemo, useState } from "react";
-import {
-  View,
-  Text,
-  StyleSheet,
-  Pressable,
-} from "react-native";
-import { Habit } from "../types/habit";
-import { useTheme } from "../hooks/useTheme";
-import { ThemeColors } from "../constants/colors";
-import {
-  addDays,
-  getDayStatus,
-  getToday,
-  parseDate,
-} from "../utils/dateUtils";
+import React, { useMemo, useState } from 'react';
+import { View, Text, StyleSheet, Pressable } from 'react-native';
+import { Habit } from '../types/habit';
+import { useTheme } from '../hooks/useTheme';
+import { ThemeColors } from '../constants/colors';
+import { addDays, getDayStatus, getToday, parseDate } from '../utils/dateUtils';
 
 interface YearGridProps {
   habit: Habit;
@@ -29,9 +19,9 @@ const CELL_SIZE = 15;
 const CELL_GAP = 3;
 // Lighter than colors.cellEmpty so empty days are clearly visible against
 // the dark card background — the all-habits strip stays as-is.
-const EMPTY_CELL = "#2E2E2E";
+const EMPTY_CELL = '#2E2E2E';
 
-type CellState = "completed" | "missed_twice" | "empty" | "future";
+type CellState = 'completed' | 'missed_twice' | 'empty' | 'future';
 
 interface Cell {
   dateStr: string;
@@ -44,11 +34,7 @@ interface Cell {
  *  The active range starts at the first completion (or createdAt if the
  *  habit has no completions yet) so a habit created weeks before it was
  *  actually started doesn't show a wall of dim grey leading up to day 1. */
-function buildYearCells(
-  habit: Habit,
-  year: number,
-  todayStr: string
-): Cell[] {
+function buildYearCells(habit: Habit, year: number, todayStr: string): Cell[] {
   const sortedCompletions = [...habit.completions].sort();
   const anchor = sortedCompletions[0] ?? habit.createdAt;
   const start = `${year}-01-01`;
@@ -61,7 +47,7 @@ function buildYearCells(
     if (!inRange) {
       // Before the habit was actually started OR after today: render
       // dim/future-style.
-      state = cursor > todayStr ? "future" : "empty";
+      state = cursor > todayStr ? 'future' : 'empty';
     } else {
       state = getDayStatus(habit, cursor);
     }
@@ -76,18 +62,14 @@ function buildYearCells(
   return cells;
 }
 
-function getCellColor(
-  state: CellState,
-  habitColor: string,
-  colors: ThemeColors
-): string {
+function getCellColor(state: CellState, habitColor: string, colors: ThemeColors): string {
   switch (state) {
-    case "completed":
+    case 'completed':
       return habitColor;
-    case "missed_twice":
+    case 'missed_twice':
       return colors.cellMissedTwice;
-    case "future":
-    case "empty":
+    case 'future':
+    case 'empty':
     default:
       return EMPTY_CELL;
   }
@@ -99,17 +81,17 @@ export function YearGrid({ habit, onDayPress }: YearGridProps) {
     () =>
       StyleSheet.create({
         navRow: {
-          flexDirection: "row",
-          alignItems: "center",
-          justifyContent: "space-between",
+          flexDirection: 'row',
+          alignItems: 'center',
+          justifyContent: 'space-between',
           marginBottom: 6,
           paddingHorizontal: 4,
         },
         navButton: {
           width: 30,
           height: 30,
-          alignItems: "center",
-          justifyContent: "center",
+          alignItems: 'center',
+          justifyContent: 'center',
           borderRadius: 8,
           backgroundColor: colors.inputBackground,
         },
@@ -120,27 +102,27 @@ export function YearGrid({ habit, onDayPress }: YearGridProps) {
           color: colors.textPrimary,
           fontSize: 22,
           lineHeight: 24,
-          fontWeight: "600",
+          fontWeight: '600',
         },
         navChevronDisabled: {
           color: colors.textMuted,
         },
         yearLabel: {
           fontSize: 16,
-          fontWeight: "600",
+          fontWeight: '600',
           color: colors.textPrimary,
         },
         yearStats: {
           fontSize: 12,
           color: colors.textMuted,
-          textAlign: "center",
+          textAlign: 'center',
           marginTop: 8,
         },
         grid: {
-          alignItems: "center",
+          alignItems: 'center',
         },
         row: {
-          flexDirection: "row",
+          flexDirection: 'row',
           gap: CELL_GAP,
           marginBottom: CELL_GAP,
         },
@@ -148,8 +130,8 @@ export function YearGrid({ habit, onDayPress }: YearGridProps) {
           width: CELL_SIZE,
           height: CELL_SIZE,
           borderRadius: 4,
-          alignItems: "flex-end",
-          justifyContent: "flex-start",
+          alignItems: 'flex-end',
+          justifyContent: 'flex-start',
         },
         noteDot: {
           width: 3,
@@ -159,15 +141,15 @@ export function YearGrid({ habit, onDayPress }: YearGridProps) {
           opacity: 0.6,
         },
         legend: {
-          flexDirection: "row",
-          justifyContent: "center",
+          flexDirection: 'row',
+          justifyContent: 'center',
           marginTop: 10,
           gap: 14,
-          flexWrap: "wrap",
+          flexWrap: 'wrap',
         },
         legendItem: {
-          flexDirection: "row",
-          alignItems: "center",
+          flexDirection: 'row',
+          alignItems: 'center',
           gap: 6,
         },
         legendDot: {
@@ -186,7 +168,7 @@ export function YearGrid({ habit, onDayPress }: YearGridProps) {
           fontSize: 12,
         },
       }),
-    [colors]
+    [colors],
   );
 
   const todayStr = getToday();
@@ -195,10 +177,7 @@ export function YearGrid({ habit, onDayPress }: YearGridProps) {
 
   const [year, setYear] = useState(todayYear);
 
-  const cells = useMemo(
-    () => buildYearCells(habit, year, todayStr),
-    [habit, year, todayStr]
-  );
+  const cells = useMemo(() => buildYearCells(habit, year, todayStr), [habit, year, todayStr]);
 
   // Chunk into rows of COLUMNS, like HabitStrip.
   const rows: Cell[][] = useMemo(() => {
@@ -215,23 +194,21 @@ export function YearGrid({ habit, onDayPress }: YearGridProps) {
   const yearStart = `${year}-01-01`;
   const yearEnd = `${year}-12-31`;
   const completionsThisYear = habit.completions.filter(
-    (d) => d >= yearStart && d <= yearEnd
+    (d) => d >= yearStart && d <= yearEnd,
   ).length;
   const notesThisYear = Object.keys(habit.notes).filter(
-    (d) => d >= yearStart && d <= yearEnd
+    (d) => d >= yearStart && d <= yearEnd,
   ).length;
 
   // Days elapsed inside this year, bounded by createdAt (don't count days
   // before the habit existed) and today (don't count future days).
-  const elapsedStart =
-    habit.createdAt > yearStart ? habit.createdAt : yearStart;
+  const elapsedStart = habit.createdAt > yearStart ? habit.createdAt : yearStart;
   const elapsedEnd = todayStr < yearEnd ? todayStr : yearEnd;
   let daysElapsed = 0;
   if (elapsedStart <= elapsedEnd) {
     const a = parseDate(elapsedStart);
     const b = parseDate(elapsedEnd);
-    daysElapsed =
-      Math.round((b.getTime() - a.getTime()) / (1000 * 60 * 60 * 24)) + 1;
+    daysElapsed = Math.round((b.getTime() - a.getTime()) / (1000 * 60 * 60 * 24)) + 1;
   }
 
   return (
@@ -244,14 +221,7 @@ export function YearGrid({ habit, onDayPress }: YearGridProps) {
           hitSlop={10}
           style={[styles.navButton, !canGoPrev && styles.navButtonDisabled]}
         >
-          <Text
-            style={[
-              styles.navChevron,
-              !canGoPrev && styles.navChevronDisabled,
-            ]}
-          >
-            ‹
-          </Text>
+          <Text style={[styles.navChevron, !canGoPrev && styles.navChevronDisabled]}>‹</Text>
         </Pressable>
         <Text style={styles.yearLabel}>{year}</Text>
         <Pressable
@@ -260,14 +230,7 @@ export function YearGrid({ habit, onDayPress }: YearGridProps) {
           hitSlop={10}
           style={[styles.navButton, !canGoNext && styles.navButtonDisabled]}
         >
-          <Text
-            style={[
-              styles.navChevron,
-              !canGoNext && styles.navChevronDisabled,
-            ]}
-          >
-            ›
-          </Text>
+          <Text style={[styles.navChevron, !canGoNext && styles.navChevronDisabled]}>›</Text>
         </Pressable>
       </View>
 
@@ -286,12 +249,7 @@ export function YearGrid({ habit, onDayPress }: YearGridProps) {
                 },
               ];
               const inner = cell.hasNote ? (
-                <View
-                  style={[
-                    styles.noteDot,
-                    { backgroundColor: colors.textSecondary },
-                  ]}
-                />
+                <View style={[styles.noteDot, { backgroundColor: colors.textSecondary }]} />
               ) : null;
               if (tappable) {
                 return (
@@ -319,21 +277,11 @@ export function YearGrid({ habit, onDayPress }: YearGridProps) {
       {/* Legend */}
       <View style={styles.legend}>
         <View style={styles.legendItem}>
-          <View
-            style={[
-              styles.legendDot,
-              { backgroundColor: habit.color },
-            ]}
-          />
+          <View style={[styles.legendDot, { backgroundColor: habit.color }]} />
           <Text style={styles.legendText}>Completed</Text>
         </View>
         <View style={styles.legendItem}>
-          <View
-            style={[
-              styles.legendDot,
-              { backgroundColor: colors.cellMissedTwice },
-            ]}
-          />
+          <View style={[styles.legendDot, { backgroundColor: colors.cellMissedTwice }]} />
           <Text style={styles.legendText}>Missed twice</Text>
         </View>
         <View style={styles.legendItem}>
@@ -345,8 +293,8 @@ export function YearGrid({ habit, onDayPress }: YearGridProps) {
       {/* Stats line for this year, below the legend */}
       <Text style={styles.yearStats}>
         {completionsThisYear} / {daysElapsed} day
-        {daysElapsed === 1 ? "" : "s"} · {notesThisYear} note
-        {notesThisYear === 1 ? "" : "s"}
+        {daysElapsed === 1 ? '' : 's'} · {notesThisYear} note
+        {notesThisYear === 1 ? '' : 's'}
       </Text>
     </View>
   );

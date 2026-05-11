@@ -2,18 +2,18 @@ import {
   DarkTheme,
   DefaultTheme,
   ThemeProvider as NavThemeProvider,
-} from "@react-navigation/native";
-import { Stack, useRouter } from "expo-router";
-import { StatusBar } from "expo-status-bar";
-import { Pressable } from "react-native";
-import { Ionicons } from "@expo/vector-icons";
-import "react-native-reanimated";
-import { ThemeProvider, useTheme } from "../src/hooks/useTheme";
-import { UpdateToast } from "../src/components/UpdateToast";
-import { NewBuildBanner } from "../src/components/NewBuildBanner";
+} from '@react-navigation/native';
+import { Stack, useRouter } from 'expo-router';
+import { StatusBar } from 'expo-status-bar';
+import { Pressable } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
+import 'react-native-reanimated';
+import { ThemeProvider, useTheme } from '../src/hooks/useTheme';
+import { UpdateToast } from '../src/components/UpdateToast';
+import { NewBuildBanner } from '../src/components/NewBuildBanner';
 
 export const unstable_settings = {
-  anchor: "(tabs)",
+  anchor: '(tabs)',
 };
 
 /**
@@ -35,18 +35,14 @@ function ThemedStack() {
       accessibilityLabel="Close"
       style={{ paddingHorizontal: 4, paddingVertical: 4 }}
     >
-      <Ionicons
-        name="close-outline"
-        size={28}
-        color={colors.textPrimary}
-      />
+      <Ionicons name="close-outline" size={28} color={colors.textPrimary} />
     </Pressable>
   );
 
   const navTheme = {
-    ...(themeName === "dark" ? DarkTheme : DefaultTheme),
+    ...(themeName === 'dark' ? DarkTheme : DefaultTheme),
     colors: {
-      ...(themeName === "dark" ? DarkTheme.colors : DefaultTheme.colors),
+      ...(themeName === 'dark' ? DarkTheme.colors : DefaultTheme.colors),
       background: colors.background,
       card: colors.card,
       text: colors.textPrimary,
@@ -62,8 +58,8 @@ function ThemedStack() {
         <Stack.Screen
           name="add-habit"
           options={{
-            presentation: "modal",
-            title: "Add Habit",
+            presentation: 'modal',
+            title: 'Add Habit',
             headerStyle: { backgroundColor: colors.card },
             headerTintColor: colors.textPrimary,
             headerLeft: renderHeaderClose,
@@ -72,15 +68,15 @@ function ThemedStack() {
         <Stack.Screen
           name="edit-habit"
           options={{
-            presentation: "modal",
-            title: "Edit Habit",
+            presentation: 'modal',
+            title: 'Edit Habit',
             headerStyle: { backgroundColor: colors.card },
             headerTintColor: colors.textPrimary,
             headerLeft: renderHeaderClose,
           }}
         />
       </Stack>
-      <StatusBar style={themeName === "dark" ? "light" : "dark"} />
+      <StatusBar style={themeName === 'dark' ? 'light' : 'dark'} />
       <UpdateToast />
       <NewBuildBanner />
     </NavThemeProvider>

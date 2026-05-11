@@ -1,9 +1,9 @@
-import React, { useMemo } from "react";
-import { View, Text, StyleSheet, ScrollView } from "react-native";
-import { Habit } from "../types/habit";
-import { useTheme } from "../hooks/useTheme";
-import { DayCell } from "./DayCell";
-import { formatDate, getDayStatus, getToday, parseDate } from "../utils/dateUtils";
+import React, { useMemo } from 'react';
+import { View, Text, StyleSheet, ScrollView } from 'react-native';
+import { Habit } from '../types/habit';
+import { useTheme } from '../hooks/useTheme';
+import { DayCell } from './DayCell';
+import { formatDate, getDayStatus, getToday, parseDate } from '../utils/dateUtils';
 
 interface CalendarGridProps {
   habit: Habit;
@@ -18,12 +18,7 @@ interface CalendarGridProps {
   backfillMode?: boolean;
 }
 
-export function CalendarGrid({
-  habit,
-  weeks = 12,
-  onDayPress,
-  backfillMode,
-}: CalendarGridProps) {
+export function CalendarGrid({ habit, weeks = 12, onDayPress, backfillMode }: CalendarGridProps) {
   const { colors } = useTheme();
   const styles = useMemo(
     () =>
@@ -32,33 +27,33 @@ export function CalendarGrid({
           paddingHorizontal: 8,
         },
         headerRow: {
-          flexDirection: "row",
-          justifyContent: "center",
+          flexDirection: 'row',
+          justifyContent: 'center',
           marginBottom: 4,
         },
         headerCell: {
           width: 40,
           margin: 2,
-          alignItems: "center",
+          alignItems: 'center',
         },
         headerLabel: {
           color: colors.textMuted,
           fontSize: 12,
-          fontWeight: "600",
+          fontWeight: '600',
         },
         weekRow: {
-          flexDirection: "row",
-          justifyContent: "center",
+          flexDirection: 'row',
+          justifyContent: 'center',
         },
         legend: {
-          flexDirection: "row",
-          justifyContent: "center",
+          flexDirection: 'row',
+          justifyContent: 'center',
           marginTop: 16,
           gap: 16,
         },
         legendItem: {
-          flexDirection: "row",
-          alignItems: "center",
+          flexDirection: 'row',
+          alignItems: 'center',
           gap: 6,
         },
         legendDot: {
@@ -71,7 +66,7 @@ export function CalendarGrid({
           fontSize: 12,
         },
       }),
-    [colors]
+    [colors],
   );
 
   const todayStr = getToday();
@@ -108,7 +103,7 @@ export function CalendarGrid({
     weekRows.push(cells.slice(i, i + 7));
   }
 
-  const dayLabels = ["S", "M", "T", "W", "T", "F", "S"];
+  const dayLabels = ['S', 'M', 'T', 'W', 'T', 'F', 'S'];
 
   return (
     <View style={styles.container}>
@@ -135,12 +130,10 @@ export function CalendarGrid({
                 );
               }
               const inRange = dateStr >= anchor && dateStr <= todayStr;
-              const status = inRange ? getDayStatus(habit, dateStr) : "empty";
+              const status = inRange ? getDayStatus(habit, dateStr) : 'empty';
               const day = parseDate(dateStr).getDate().toString();
               const tappable =
-                onDayPress &&
-                dateStr <= todayStr &&
-                (backfillMode || dateStr >= habit.createdAt);
+                onDayPress && dateStr <= todayStr && (backfillMode || dateStr >= habit.createdAt);
               return (
                 <DayCell
                   key={dateStr}
@@ -149,9 +142,7 @@ export function CalendarGrid({
                   size={40}
                   hasNote={Boolean(habit.notes[dateStr])}
                   tappableHint={backfillMode && tappable}
-                  onPress={
-                    tappable ? () => onDayPress!(dateStr) : undefined
-                  }
+                  onPress={tappable ? () => onDayPress!(dateStr) : undefined}
                 />
               );
             })}
@@ -162,21 +153,11 @@ export function CalendarGrid({
       {/* Legend */}
       <View style={styles.legend}>
         <View style={styles.legendItem}>
-          <View
-            style={[
-              styles.legendDot,
-              { backgroundColor: colors.cellCompleted },
-            ]}
-          />
+          <View style={[styles.legendDot, { backgroundColor: colors.cellCompleted }]} />
           <Text style={styles.legendText}>Completed</Text>
         </View>
         <View style={styles.legendItem}>
-          <View
-            style={[
-              styles.legendDot,
-              { backgroundColor: colors.cellMissedTwice },
-            ]}
-          />
+          <View style={[styles.legendDot, { backgroundColor: colors.cellMissedTwice }]} />
           <Text style={styles.legendText}>Missed twice</Text>
         </View>
       </View>

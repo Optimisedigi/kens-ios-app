@@ -1,11 +1,6 @@
-import AsyncStorage from "@react-native-async-storage/async-storage";
-import {
-  Habit,
-  HABIT_COLOR_PALETTE,
-  HabitFrequency,
-  NotificationSettings,
-} from "../types/habit";
-import { getToday } from "../utils/dateUtils";
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { Habit, HABIT_COLOR_PALETTE, HabitFrequency, NotificationSettings } from '../types/habit';
+import { getToday } from '../utils/dateUtils';
 
 /** Pick the next palette color that isn't already in use; falls back to rotating through the palette if all are taken. */
 function pickNextColor(existing: Habit[]): string {
@@ -15,22 +10,17 @@ function pickNextColor(existing: Habit[]): string {
   return HABIT_COLOR_PALETTE[existing.length % HABIT_COLOR_PALETTE.length];
 }
 
-const HABITS_KEY = "habits";
-const NOTIFICATION_SETTINGS_KEY = "notification_settings";
+const HABITS_KEY = 'habits';
+const NOTIFICATION_SETTINGS_KEY = 'notification_settings';
 
 /**
  * Stored habit shape on disk — accommodates the legacy `frequencyDays: number`
  * field and the newer `frequency` discriminated union. We migrate on read.
  */
-interface StoredHabit
-  extends Omit<
-    Habit,
-    | "frequency"
-    | "reminderHour"
-    | "reminderMinute"
-    | "notes"
-    | "endDate"
-  > {
+interface StoredHabit extends Omit<
+  Habit,
+  'frequency' | 'reminderHour' | 'reminderMinute' | 'notes' | 'endDate'
+> {
   frequency?: HabitFrequency;
   frequencyDays?: number;
   reminderHour?: number | null;
@@ -59,23 +49,20 @@ export async function loadHabits(): Promise<Habit[]> {
         // meaningless (the habit would never be due) — coerce to Daily so
         // a corrupt habit can't crash the screen.
         if (
-          frequency.kind === "weekdays" &&
-          (!Array.isArray(frequency.weekdays) ||
-            frequency.weekdays.length === 0)
+          frequency.kind === 'weekdays' &&
+          (!Array.isArray(frequency.weekdays) || frequency.weekdays.length === 0)
         ) {
-          frequency = { kind: "interval", days: 1 };
+          frequency = { kind: 'interval', days: 1 };
           needsSave = true;
         }
       } else {
         // Legacy: only `frequencyDays` was stored. Treat as an interval.
-        frequency = { kind: "interval", days: h.frequencyDays ?? 1 };
+        frequency = { kind: 'interval', days: h.frequencyDays ?? 1 };
         needsSave = true;
       }
-      const color =
-        h.color ?? HABIT_COLOR_PALETTE[index % HABIT_COLOR_PALETTE.length];
+      const color = h.color ?? HABIT_COLOR_PALETTE[index % HABIT_COLOR_PALETTE.length];
       if (!h.color) needsSave = true;
-      const notes =
-        h.notes && typeof h.notes === "object" ? h.notes : {};
+      const notes = h.notes && typeof h.notes === 'object' ? h.notes : {};
       if (!h.notes) needsSave = true;
       // Reminder values: `undefined` means "never set" — seed from the
       // legacy global time. `null` means "user explicitly turned off the
@@ -87,19 +74,14 @@ export async function loadHabits(): Promise<Habit[]> {
         reminderMinute = seed.reminderMinute;
         needsSave = true;
       } else {
-        reminderHour =
-          typeof h.reminderHour === "number" ? h.reminderHour : null;
-        reminderMinute =
-          typeof h.reminderMinute === "number" ? h.reminderMinute : null;
+        reminderHour = typeof h.reminderHour === 'number' ? h.reminderHour : null;
+        reminderMinute = typeof h.reminderMinute === 'number' ? h.reminderMinute : null;
       }
       // `endDate` is optional on disk; missing = no end date (legacy
       // habits run indefinitely). Default to null without flipping
       // `needsSave` — we'll persist it the next time anything else
       // changes.
-      const endDate =
-        typeof h.endDate === "string" || h.endDate === null
-          ? h.endDate
-          : null;
+      const endDate = typeof h.endDate === 'string' || h.endDate === null ? h.endDate : null;
       return {
         id: h.id,
         name: h.name,
@@ -119,23 +101,22 @@ export async function loadHabits(): Promise<Habit[]> {
     // 2026-04-28 and drop any completions before that date. Keyed on a
     // flag so it runs exactly once, then can be deleted in a follow-up.
     // ---------------------------------------------------------------
-    const PHYS_EX_MIGRATION_KEY = "migration:physicalExercise:2026-04-28";
-    const cutoff = "2026-04-28";
+    const PHYS_EX_MIGRATION_KEY = 'migration:physicalExercise:2026-04-28';
+    const cutoff = '2026-04-28';
     let physExMigrated = migrated;
     const alreadyRan = await AsyncStorage.getItem(PHYS_EX_MIGRATION_KEY);
     if (!alreadyRan) {
       let touched = false;
       physExMigrated = migrated.map((h) => {
-        if (h.name.trim().toLowerCase() !== "physical exercise") return h;
+        if (h.name.trim().toLowerCase() !== 'physical exercise') return h;
         const newCompletions = h.completions.filter((d) => d >= cutoff);
-        const completionsChanged =
-          newCompletions.length !== h.completions.length;
+        const completionsChanged = newCompletions.length !== h.completions.length;
         if (h.createdAt === cutoff && !completionsChanged) return h;
         touched = true;
         return { ...h, createdAt: cutoff, completions: newCompletions };
       });
       if (touched) needsSave = true;
-      await AsyncStorage.setItem(PHYS_EX_MIGRATION_KEY, "1");
+      await AsyncStorage.setItem(PHYS_EX_MIGRATION_KEY, '1');
     }
 
     // ---------------------------------------------------------------
@@ -144,169 +125,169 @@ export async function loadHabits(): Promise<Habit[]> {
     // createdAt back to the first entry. Adds a single Sleep before 10
     // completion for 2026-04-29. Keyed on a flag so it runs exactly once.
     // ---------------------------------------------------------------
-    const BACKFILL_KEY = "migration:backfill:2026-04-30";
+    const BACKFILL_KEY = 'migration:backfill:2026-04-30';
     const backfillRan = await AsyncStorage.getItem(BACKFILL_KEY);
     if (!backfillRan) {
       const physExEntries: [string, string][] = [
-        ["2024-04-04", "Legs - 3"],
-        ["2024-04-05", "Push - 3"],
-        ["2024-04-09", "Pull - 4"],
-        ["2024-04-10", "Legs - 3"],
-        ["2024-04-11", "Push 2 - 3"],
-        ["2024-04-12", "Kot - 1"],
-        ["2024-04-17", "Kot - 1"],
-        ["2024-04-18", "Pull 2 - 3"],
-        ["2024-04-24", "Legs - 3"],
-        ["2024-04-25", "Push - 2"],
-        ["2024-05-07", "Pull 2 - 3"],
-        ["2024-05-09", "Push 2 - 2"],
-        ["2024-05-12", "Legs 2 - 1"],
-        ["2024-05-14", "Push - 3"],
-        ["2024-05-15", "Pull - 3"],
-        ["2024-05-22", "Legs - 3"],
-        ["2024-05-23", "Push 2 - 3"],
-        ["2024-05-24", "Pull 2 - 3"],
-        ["2024-05-30", "Legs 2 - 2"],
-        ["2024-05-31", "Push - 2"],
-        ["2024-06-05", "Pull - 3"],
-        ["2024-06-12", "Legs - 3"],
-        ["2024-06-16", "Push 2 - 2"],
-        ["2024-06-17", "Pull - 2"],
-        ["2024-06-20", "Legs 2 - 2"],
-        ["2024-06-21", "Push - 2"],
-        ["2024-07-01", "Legs - 2"],
-        ["2024-07-02", "Push - 2"],
-        ["2024-07-05", "Pull - 2"],
-        ["2024-07-10", "Legs 2 - 2"],
-        ["2024-07-11", "Push Ups (Heria) - 2"],
-        ["2024-07-17", "Pull 2 - 3"],
-        ["2024-07-18", "Legs - 3"],
-        ["2024-07-19", "Push - 3"],
-        ["2024-08-21", "Push - 2"],
-        ["2024-08-22", "Legs - 2"],
-        ["2024-08-26", "Back - 2"],
-        ["2024-08-30", "30 Full Body -"],
-        ["2024-09-03", "Che - 2"],
-        ["2024-09-04", "Legs - 3"],
-        ["2024-09-06", "Pull 2 - 3"],
-        ["2024-09-12", "30 30 60 -"],
-        ["2024-09-19", "Legs - 3"],
-        ["2024-09-25", "Pull 2 - 3"],
-        ["2024-09-26", "Push 2 - 2"],
-        ["2024-09-30", "Legs 2 - 2"],
-        ["2024-10-01", "Push - 2"],
-        ["2024-10-03", "Pull - 3"],
-        ["2024-10-16", "Legs - 2"],
-        ["2024-10-29", "Push 2 - 2"],
-        ["2024-10-31", "Pull 2 - 2"],
-        ["2024-11-01", "Legs 2 - 2"],
-        ["2024-11-05", "Push - 2"],
-        ["2024-11-07", "Legs - 2"],
-        ["2024-11-12", "Back - 2"],
-        ["2024-11-17", "Push -"],
-        ["2024-12-25", "Push - 3"],
-        ["2025-01-08", "Legs 2 - 3"],
-        ["2025-01-09", "Back - 3"],
-        ["2025-01-15", "Push 2 - 3"],
-        ["2025-01-24", "Full Body - 2"],
-        ["2025-01-28", "Legs - 3"],
-        ["2025-01-29", "Pull 2 - 3"],
-        ["2025-01-31", "Push - 3"],
-        ["2025-02-05", "Pull - 3"],
-        ["2025-02-06", "Legs 2 - 2"],
-        ["2025-02-08", "Push 2 - 3"],
-        ["2025-02-12", "Pull 2 - 3"],
-        ["2025-02-13", "Legs - 2"],
-        ["2025-02-15", "Push - 3"],
-        ["2025-02-18", "Pull - 3"],
-        ["2025-02-19", "Push 2 - 3"],
-        ["2025-02-25", "Legs 2 - 3"],
-        ["2025-02-27", "Pull 2 - 3"],
-        ["2025-02-28", "Push - 3"],
-        ["2025-03-06", "Legs - 2"],
-        ["2025-03-07", "Pull - 3"],
-        ["2025-03-11", "Push 2 - 3"],
-        ["2025-03-12", "Legs 2 - 2"],
-        ["2025-03-13", "Pull 2 - 3"],
-        ["2025-03-25", "Push - 3"],
-        ["2025-03-26", "Legs - 3"],
-        ["2025-03-27", "Pull - 3"],
-        ["2025-03-29", "Push 2 - 3"],
-        ["2025-04-03", "Legs 2 - 3"],
-        ["2025-04-04", "Pull 2 - 3"],
-        ["2025-04-08", "Push - 3"],
-        ["2025-04-09", "Legs - 3"],
-        ["2025-04-10", "Pull - 3"],
-        ["2025-04-15", "Push 2 - 2"],
-        ["2025-04-16", "Legs 2 - 2"],
-        ["2025-04-17", "Pull 2 - 3"],
-        ["2025-04-29", "Push - 3"],
-        ["2025-05-14", "Full Body - 1"],
-        ["2025-05-18", "Legs - 2"],
-        ["2025-05-19", "Push - 1"],
-        ["2025-05-21", "Pull - 3"],
-        ["2025-05-22", "Yoga - 30Mins"],
-        ["2025-05-23", "Full Body - 2.5"],
-        ["2025-05-26", "Yoga - 30Mins"],
-        ["2025-05-27", "Legs 2 - 3"],
-        ["2025-05-28", "Push 2 - 2"],
-        ["2025-05-30", "Pull 2 - 2"],
-        ["2025-06-01", "Yoga - 15Mins"],
-        ["2025-06-02", "Full Body -"],
-        ["2025-06-04", "Full Body -"],
-        ["2025-06-05", "Full Body -"],
-        ["2025-06-08", "Full Body -"],
-        ["2025-06-12", "Full Body -"],
-        ["2025-07-16", "Legs - 2"],
-        ["2025-07-17", "Pull - 2"],
-        ["2025-07-18", "Push - 2"],
-        ["2025-07-21", "Legs 2 - 2"],
-        ["2025-07-22", "Pull 2 - 2"],
-        ["2025-07-23", "Push 2 - 2"],
-        ["2025-07-29", "Legs - 2"],
-        ["2025-07-31", "Push - 2"],
-        ["2025-08-14", "Legs 2 - 3"],
-        ["2025-08-15", "Pull 2 - 3"],
-        ["2025-08-19", "Push 2 - 2"],
-        ["2025-08-21", "Legs - 2"],
-        ["2025-08-27", "Pull - 3"],
-        ["2025-08-28", "Push - 2"],
-        ["2025-09-17", "Legs - 3"],
-        ["2025-09-18", "Push - 3"],
-        ["2025-09-19", "Pull - 3"],
-        ["2025-09-20", "Legs 2 - 3"],
-        ["2025-09-22", "Pull 2 - 3"],
-        ["2025-09-29", "Push 2 - 3"],
-        ["2025-09-30", "Legs - 3"],
-        ["2025-10-02", "Pull - 3"],
-        ["2025-10-03", "Push - 3"],
-        ["2025-10-08", "Legs 2 - 2"],
-        ["2025-10-09", "Pull 2 - 3"],
-        ["2025-10-14", "Push 2 - 3"],
-        ["2025-10-15", "Legs - 2"],
-        ["2025-10-17", "Pull - 3"],
-        ["2025-10-22", "Push - 3"],
-        ["2025-10-23", "Legs 2 - 3"],
-        ["2025-10-24", "Pull 2 - 3"],
-        ["2025-11-04", "Push 2 - 2"],
-        ["2025-12-01", "Full Body - Light"],
-        ["2025-12-06", "Full Body - Light"],
-        ["2025-12-11", "Full Body - Light"],
-        ["2026-01-05", "Legs - 2"],
-        ["2026-01-08", "Push - 2"],
-        ["2026-01-12", "Pull - 3"],
-        ["2026-01-14", "Legs 2 - 2"],
-        ["2026-01-15", "Push 2 - 2"],
-        ["2026-01-16", "Pull 2 - 2"],
-        ["2026-01-23", "Full Body -"],
-        ["2026-01-30", "Full Body - 2"],
-        ["2026-02-04", "Legs - 2"],
-        ["2026-02-06", "Push - 2"],
-        ["2026-02-11", "Pull - 2"],
-        ["2026-02-17", "Push 2 - 2"],
-        ["2026-02-23", "Pilates -"],
-        ["2026-02-27", "Full Body -"],
-        ["2026-03-06", "Full Body -"],
+        ['2024-04-04', 'Legs - 3'],
+        ['2024-04-05', 'Push - 3'],
+        ['2024-04-09', 'Pull - 4'],
+        ['2024-04-10', 'Legs - 3'],
+        ['2024-04-11', 'Push 2 - 3'],
+        ['2024-04-12', 'Kot - 1'],
+        ['2024-04-17', 'Kot - 1'],
+        ['2024-04-18', 'Pull 2 - 3'],
+        ['2024-04-24', 'Legs - 3'],
+        ['2024-04-25', 'Push - 2'],
+        ['2024-05-07', 'Pull 2 - 3'],
+        ['2024-05-09', 'Push 2 - 2'],
+        ['2024-05-12', 'Legs 2 - 1'],
+        ['2024-05-14', 'Push - 3'],
+        ['2024-05-15', 'Pull - 3'],
+        ['2024-05-22', 'Legs - 3'],
+        ['2024-05-23', 'Push 2 - 3'],
+        ['2024-05-24', 'Pull 2 - 3'],
+        ['2024-05-30', 'Legs 2 - 2'],
+        ['2024-05-31', 'Push - 2'],
+        ['2024-06-05', 'Pull - 3'],
+        ['2024-06-12', 'Legs - 3'],
+        ['2024-06-16', 'Push 2 - 2'],
+        ['2024-06-17', 'Pull - 2'],
+        ['2024-06-20', 'Legs 2 - 2'],
+        ['2024-06-21', 'Push - 2'],
+        ['2024-07-01', 'Legs - 2'],
+        ['2024-07-02', 'Push - 2'],
+        ['2024-07-05', 'Pull - 2'],
+        ['2024-07-10', 'Legs 2 - 2'],
+        ['2024-07-11', 'Push Ups (Heria) - 2'],
+        ['2024-07-17', 'Pull 2 - 3'],
+        ['2024-07-18', 'Legs - 3'],
+        ['2024-07-19', 'Push - 3'],
+        ['2024-08-21', 'Push - 2'],
+        ['2024-08-22', 'Legs - 2'],
+        ['2024-08-26', 'Back - 2'],
+        ['2024-08-30', '30 Full Body -'],
+        ['2024-09-03', 'Che - 2'],
+        ['2024-09-04', 'Legs - 3'],
+        ['2024-09-06', 'Pull 2 - 3'],
+        ['2024-09-12', '30 30 60 -'],
+        ['2024-09-19', 'Legs - 3'],
+        ['2024-09-25', 'Pull 2 - 3'],
+        ['2024-09-26', 'Push 2 - 2'],
+        ['2024-09-30', 'Legs 2 - 2'],
+        ['2024-10-01', 'Push - 2'],
+        ['2024-10-03', 'Pull - 3'],
+        ['2024-10-16', 'Legs - 2'],
+        ['2024-10-29', 'Push 2 - 2'],
+        ['2024-10-31', 'Pull 2 - 2'],
+        ['2024-11-01', 'Legs 2 - 2'],
+        ['2024-11-05', 'Push - 2'],
+        ['2024-11-07', 'Legs - 2'],
+        ['2024-11-12', 'Back - 2'],
+        ['2024-11-17', 'Push -'],
+        ['2024-12-25', 'Push - 3'],
+        ['2025-01-08', 'Legs 2 - 3'],
+        ['2025-01-09', 'Back - 3'],
+        ['2025-01-15', 'Push 2 - 3'],
+        ['2025-01-24', 'Full Body - 2'],
+        ['2025-01-28', 'Legs - 3'],
+        ['2025-01-29', 'Pull 2 - 3'],
+        ['2025-01-31', 'Push - 3'],
+        ['2025-02-05', 'Pull - 3'],
+        ['2025-02-06', 'Legs 2 - 2'],
+        ['2025-02-08', 'Push 2 - 3'],
+        ['2025-02-12', 'Pull 2 - 3'],
+        ['2025-02-13', 'Legs - 2'],
+        ['2025-02-15', 'Push - 3'],
+        ['2025-02-18', 'Pull - 3'],
+        ['2025-02-19', 'Push 2 - 3'],
+        ['2025-02-25', 'Legs 2 - 3'],
+        ['2025-02-27', 'Pull 2 - 3'],
+        ['2025-02-28', 'Push - 3'],
+        ['2025-03-06', 'Legs - 2'],
+        ['2025-03-07', 'Pull - 3'],
+        ['2025-03-11', 'Push 2 - 3'],
+        ['2025-03-12', 'Legs 2 - 2'],
+        ['2025-03-13', 'Pull 2 - 3'],
+        ['2025-03-25', 'Push - 3'],
+        ['2025-03-26', 'Legs - 3'],
+        ['2025-03-27', 'Pull - 3'],
+        ['2025-03-29', 'Push 2 - 3'],
+        ['2025-04-03', 'Legs 2 - 3'],
+        ['2025-04-04', 'Pull 2 - 3'],
+        ['2025-04-08', 'Push - 3'],
+        ['2025-04-09', 'Legs - 3'],
+        ['2025-04-10', 'Pull - 3'],
+        ['2025-04-15', 'Push 2 - 2'],
+        ['2025-04-16', 'Legs 2 - 2'],
+        ['2025-04-17', 'Pull 2 - 3'],
+        ['2025-04-29', 'Push - 3'],
+        ['2025-05-14', 'Full Body - 1'],
+        ['2025-05-18', 'Legs - 2'],
+        ['2025-05-19', 'Push - 1'],
+        ['2025-05-21', 'Pull - 3'],
+        ['2025-05-22', 'Yoga - 30Mins'],
+        ['2025-05-23', 'Full Body - 2.5'],
+        ['2025-05-26', 'Yoga - 30Mins'],
+        ['2025-05-27', 'Legs 2 - 3'],
+        ['2025-05-28', 'Push 2 - 2'],
+        ['2025-05-30', 'Pull 2 - 2'],
+        ['2025-06-01', 'Yoga - 15Mins'],
+        ['2025-06-02', 'Full Body -'],
+        ['2025-06-04', 'Full Body -'],
+        ['2025-06-05', 'Full Body -'],
+        ['2025-06-08', 'Full Body -'],
+        ['2025-06-12', 'Full Body -'],
+        ['2025-07-16', 'Legs - 2'],
+        ['2025-07-17', 'Pull - 2'],
+        ['2025-07-18', 'Push - 2'],
+        ['2025-07-21', 'Legs 2 - 2'],
+        ['2025-07-22', 'Pull 2 - 2'],
+        ['2025-07-23', 'Push 2 - 2'],
+        ['2025-07-29', 'Legs - 2'],
+        ['2025-07-31', 'Push - 2'],
+        ['2025-08-14', 'Legs 2 - 3'],
+        ['2025-08-15', 'Pull 2 - 3'],
+        ['2025-08-19', 'Push 2 - 2'],
+        ['2025-08-21', 'Legs - 2'],
+        ['2025-08-27', 'Pull - 3'],
+        ['2025-08-28', 'Push - 2'],
+        ['2025-09-17', 'Legs - 3'],
+        ['2025-09-18', 'Push - 3'],
+        ['2025-09-19', 'Pull - 3'],
+        ['2025-09-20', 'Legs 2 - 3'],
+        ['2025-09-22', 'Pull 2 - 3'],
+        ['2025-09-29', 'Push 2 - 3'],
+        ['2025-09-30', 'Legs - 3'],
+        ['2025-10-02', 'Pull - 3'],
+        ['2025-10-03', 'Push - 3'],
+        ['2025-10-08', 'Legs 2 - 2'],
+        ['2025-10-09', 'Pull 2 - 3'],
+        ['2025-10-14', 'Push 2 - 3'],
+        ['2025-10-15', 'Legs - 2'],
+        ['2025-10-17', 'Pull - 3'],
+        ['2025-10-22', 'Push - 3'],
+        ['2025-10-23', 'Legs 2 - 3'],
+        ['2025-10-24', 'Pull 2 - 3'],
+        ['2025-11-04', 'Push 2 - 2'],
+        ['2025-12-01', 'Full Body - Light'],
+        ['2025-12-06', 'Full Body - Light'],
+        ['2025-12-11', 'Full Body - Light'],
+        ['2026-01-05', 'Legs - 2'],
+        ['2026-01-08', 'Push - 2'],
+        ['2026-01-12', 'Pull - 3'],
+        ['2026-01-14', 'Legs 2 - 2'],
+        ['2026-01-15', 'Push 2 - 2'],
+        ['2026-01-16', 'Pull 2 - 2'],
+        ['2026-01-23', 'Full Body -'],
+        ['2026-01-30', 'Full Body - 2'],
+        ['2026-02-04', 'Legs - 2'],
+        ['2026-02-06', 'Push - 2'],
+        ['2026-02-11', 'Pull - 2'],
+        ['2026-02-17', 'Push 2 - 2'],
+        ['2026-02-23', 'Pilates -'],
+        ['2026-02-27', 'Full Body -'],
+        ['2026-03-06', 'Full Body -'],
       ];
 
       let touched = false;
@@ -314,7 +295,7 @@ export async function loadHabits(): Promise<Habit[]> {
         const lc = h.name.trim().toLowerCase();
 
         // Physical exercise: backfill all CSV entries.
-        if (lc === "physical exercise") {
+        if (lc === 'physical exercise') {
           const completionSet = new Set(h.completions);
           const nextNotes = { ...h.notes };
           for (const [date, note] of physExEntries) {
@@ -324,8 +305,7 @@ export async function loadHabits(): Promise<Habit[]> {
             if (nextNotes[date] === undefined) nextNotes[date] = note;
           }
           const earliest = physExEntries[0][0];
-          const newCreatedAt =
-            earliest < h.createdAt ? earliest : h.createdAt;
+          const newCreatedAt = earliest < h.createdAt ? earliest : h.createdAt;
           const nextCompletions = Array.from(completionSet).sort();
           touched = true;
           return {
@@ -338,11 +318,11 @@ export async function loadHabits(): Promise<Habit[]> {
 
         // Sleep before 10[pm]: add a single completion for 2026-04-29.
         if (
-          lc === "sleep before 10" ||
-          lc === "sleep before 10pm" ||
-          lc.startsWith("sleep before 10")
+          lc === 'sleep before 10' ||
+          lc === 'sleep before 10pm' ||
+          lc.startsWith('sleep before 10')
         ) {
-          const date = "2026-04-29";
+          const date = '2026-04-29';
           if (h.completions.includes(date)) return h;
           touched = true;
           return { ...h, completions: [...h.completions, date].sort() };
@@ -352,7 +332,7 @@ export async function loadHabits(): Promise<Habit[]> {
       });
 
       if (touched) needsSave = true;
-      await AsyncStorage.setItem(BACKFILL_KEY, "1");
+      await AsyncStorage.setItem(BACKFILL_KEY, '1');
     }
 
     if (needsSave) {
@@ -360,7 +340,7 @@ export async function loadHabits(): Promise<Habit[]> {
     }
     return physExMigrated;
   } catch (error) {
-    console.error("Failed to load habits:", error);
+    console.error('Failed to load habits:', error);
     return [];
   }
 }
@@ -370,7 +350,7 @@ export async function saveHabits(habits: Habit[]): Promise<void> {
   try {
     await AsyncStorage.setItem(HABITS_KEY, JSON.stringify(habits));
   } catch (error) {
-    console.error("Failed to save habits:", error);
+    console.error('Failed to save habits:', error);
   }
 }
 
@@ -385,7 +365,7 @@ export async function addHabit(
   frequency: HabitFrequency,
   reminderHour: number | null,
   reminderMinute: number | null,
-  endDate: string | null
+  endDate: string | null,
 ): Promise<Habit[]> {
   const habits = await loadHabits();
   const newHabit: Habit = {
@@ -412,20 +392,12 @@ export async function updateHabit(
   updates: Partial<
     Pick<
       Habit,
-      | "name"
-      | "emoji"
-      | "frequency"
-      | "color"
-      | "reminderHour"
-      | "reminderMinute"
-      | "endDate"
+      'name' | 'emoji' | 'frequency' | 'color' | 'reminderHour' | 'reminderMinute' | 'endDate'
     >
-  >
+  >,
 ): Promise<Habit[]> {
   const habits = await loadHabits();
-  const updated = habits.map((h) =>
-    h.id === id ? { ...h, ...updates } : h
-  );
+  const updated = habits.map((h) => (h.id === id ? { ...h, ...updates } : h));
   await saveHabits(updated);
   return updated;
 }
@@ -447,10 +419,10 @@ export async function deleteHabit(id: string): Promise<Habit[]> {
 export async function setCompletionNote(
   id: string,
   dateStr: string,
-  text: string | null
+  text: string | null,
 ): Promise<Habit[]> {
   const habits = await loadHabits();
-  const trimmed = text?.trim() ?? "";
+  const trimmed = text?.trim() ?? '';
   const updated = habits.map((h) => {
     if (h.id !== id) return h;
     const nextNotes = { ...h.notes };
@@ -487,10 +459,7 @@ export async function toggleCompletion(id: string): Promise<Habit[]> {
  * habit's history. Un-ticking never moves createdAt forward — the user's
  * earliest completion stays the anchor.
  */
-export async function toggleCompletionForDate(
-  id: string,
-  dateStr: string
-): Promise<Habit[]> {
+export async function toggleCompletionForDate(id: string, dateStr: string): Promise<Habit[]> {
   const habits = await loadHabits();
   const updated = habits.map((h) => {
     if (h.id !== id) return h;
@@ -498,8 +467,7 @@ export async function toggleCompletionForDate(
     const nextCompletions = alreadyCompleted
       ? h.completions.filter((d) => d !== dateStr)
       : [...h.completions, dateStr].sort();
-    const nextCreatedAt =
-      !alreadyCompleted && dateStr < h.createdAt ? dateStr : h.createdAt;
+    const nextCreatedAt = !alreadyCompleted && dateStr < h.createdAt ? dateStr : h.createdAt;
     return {
       ...h,
       createdAt: nextCreatedAt,
@@ -514,33 +482,24 @@ export async function toggleCompletionForDate(
 export async function loadNotificationSettings(): Promise<NotificationSettings> {
   try {
     const json = await AsyncStorage.getItem(NOTIFICATION_SETTINGS_KEY);
-    if (!json)
-      return { enabled: true, reminderHour: 20, reminderMinute: 0 }; // Default: 8pm
+    if (!json) return { enabled: true, reminderHour: 20, reminderMinute: 0 }; // Default: 8pm
     return JSON.parse(json) as NotificationSettings;
   } catch (error) {
-    console.error("Failed to load notification settings:", error);
+    console.error('Failed to load notification settings:', error);
     return { enabled: true, reminderHour: 20, reminderMinute: 0 };
   }
 }
 
 /** Save notification settings */
-export async function saveNotificationSettings(
-  settings: NotificationSettings
-): Promise<void> {
+export async function saveNotificationSettings(settings: NotificationSettings): Promise<void> {
   try {
-    await AsyncStorage.setItem(
-      NOTIFICATION_SETTINGS_KEY,
-      JSON.stringify(settings)
-    );
+    await AsyncStorage.setItem(NOTIFICATION_SETTINGS_KEY, JSON.stringify(settings));
   } catch (error) {
-    console.error("Failed to save notification settings:", error);
+    console.error('Failed to save notification settings:', error);
   }
 }
 
 /** Generate a simple unique ID */
 function generateId(): string {
-  return (
-    Date.now().toString(36) +
-    Math.random().toString(36).substring(2, 9)
-  );
+  return Date.now().toString(36) + Math.random().toString(36).substring(2, 9);
 }

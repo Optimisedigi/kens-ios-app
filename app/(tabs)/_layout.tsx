@@ -1,7 +1,7 @@
-import { Tabs } from "expo-router";
-import React from "react";
-import { Ionicons } from "@expo/vector-icons";
-import { useTheme } from "../../src/hooks/useTheme";
+import { Tabs } from 'expo-router';
+import React from 'react';
+import { Ionicons } from '@expo/vector-icons';
+import { useTheme } from '../../src/hooks/useTheme';
 
 export default function TabLayout() {
   const { colors } = useTheme();
@@ -20,7 +20,7 @@ export default function TabLayout() {
       <Tabs.Screen
         name="stats"
         options={{
-          title: "Progress",
+          title: 'Progress',
           tabBarIcon: ({ color, size }) => (
             <Ionicons name="stats-chart" size={size} color={color} />
           ),
@@ -29,7 +29,7 @@ export default function TabLayout() {
       <Tabs.Screen
         name="index"
         options={{
-          title: "Today",
+          title: 'Today',
           tabBarIcon: ({ color, size }) => (
             <Ionicons name="checkmark-circle" size={size} color={color} />
           ),
@@ -38,7 +38,7 @@ export default function TabLayout() {
       <Tabs.Screen
         name="settings"
         options={{
-          title: "Settings",
+          title: 'Settings',
           tabBarIcon: ({ color, size }) => (
             <Ionicons name="settings-outline" size={size} color={color} />
           ),

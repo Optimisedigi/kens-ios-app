@@ -1,6 +1,6 @@
-import { useCallback, useEffect, useState } from "react";
-import { useFocusEffect } from "@react-navigation/native";
-import { Habit, HabitFrequency, HabitWithStatus } from "../types/habit";
+import { useCallback, useEffect, useState } from 'react';
+import { useFocusEffect } from '@react-navigation/native';
+import { Habit, HabitFrequency, HabitWithStatus } from '../types/habit';
 import {
   loadHabits,
   addHabit as addHabitStorage,
@@ -9,8 +9,8 @@ import {
   toggleCompletion as toggleCompletionStorage,
   toggleCompletionForDate as toggleCompletionForDateStorage,
   setCompletionNote as setCompletionNoteStorage,
-} from "../storage/habitStorage";
-import { getHabitWithStatus } from "../utils/dateUtils";
+} from '../storage/habitStorage';
+import { getHabitWithStatus } from '../utils/dateUtils';
 
 export function useHabits() {
   const [habits, setHabits] = useState<Habit[]>([]);
@@ -30,7 +30,7 @@ export function useHabits() {
   useFocusEffect(
     useCallback(() => {
       refresh();
-    }, [refresh])
+    }, [refresh]),
   );
 
   const habitsWithStatus: HabitWithStatus[] = habits.map(getHabitWithStatus);
@@ -42,7 +42,7 @@ export function useHabits() {
       frequency: HabitFrequency,
       reminderHour: number | null,
       reminderMinute: number | null,
-      endDate: string | null
+      endDate: string | null,
     ) => {
       const updated = await addHabitStorage(
         name,
@@ -50,11 +50,11 @@ export function useHabits() {
         frequency,
         reminderHour,
         reminderMinute,
-        endDate
+        endDate,
       );
       setHabits(updated);
     },
-    []
+    [],
   );
 
   const updateHabit = useCallback(
@@ -63,20 +63,14 @@ export function useHabits() {
       updates: Partial<
         Pick<
           Habit,
-          | "name"
-          | "emoji"
-          | "frequency"
-          | "color"
-          | "reminderHour"
-          | "reminderMinute"
-          | "endDate"
+          'name' | 'emoji' | 'frequency' | 'color' | 'reminderHour' | 'reminderMinute' | 'endDate'
         >
-      >
+      >,
     ) => {
       const updated = await updateHabitStorage(id, updates);
       setHabits(updated);
     },
-    []
+    [],
   );
 
   const deleteHabit = useCallback(async (id: string) => {
@@ -89,20 +83,17 @@ export function useHabits() {
     setHabits(updated);
   }, []);
 
-  const toggleCompletionForDate = useCallback(
-    async (id: string, dateStr: string) => {
-      const updated = await toggleCompletionForDateStorage(id, dateStr);
-      setHabits(updated);
-    },
-    []
-  );
+  const toggleCompletionForDate = useCallback(async (id: string, dateStr: string) => {
+    const updated = await toggleCompletionForDateStorage(id, dateStr);
+    setHabits(updated);
+  }, []);
 
   const setCompletionNote = useCallback(
     async (id: string, dateStr: string, text: string | null) => {
       const updated = await setCompletionNoteStorage(id, dateStr, text);
       setHabits(updated);
     },
-    []
+    [],
   );
 
   return {

@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from "react";
+import React, { useMemo, useState } from 'react';
 import {
   View,
   Text,
@@ -11,14 +11,14 @@ import {
   Keyboard,
   InputAccessoryView,
   Modal,
-} from "react-native";
-import DateTimePicker from "@react-native-community/datetimepicker";
-import { useRouter, useLocalSearchParams } from "expo-router";
-import * as Haptics from "expo-haptics";
-import { useHabits } from "../src/hooks/useHabits";
-import { useTheme } from "../src/hooks/useTheme";
-import { TimePicker } from "../src/components/TimePicker";
-import { EmojiPickerModal } from "../src/components/EmojiPickerModal";
+} from 'react-native';
+import DateTimePicker from '@react-native-community/datetimepicker';
+import { useRouter, useLocalSearchParams } from 'expo-router';
+import * as Haptics from 'expo-haptics';
+import { useHabits } from '../src/hooks/useHabits';
+import { useTheme } from '../src/hooks/useTheme';
+import { TimePicker } from '../src/components/TimePicker';
+import { EmojiPickerModal } from '../src/components/EmojiPickerModal';
 import {
   HABIT_COLOR_PALETTE,
   HabitFrequency,
@@ -27,17 +27,12 @@ import {
   PER_WEEK_FREQUENCY_OPTIONS,
   WEEKDAY_LABELS,
   WEEKDAY_FULL,
-} from "../src/types/habit";
-import {
-  addDays,
-  formatDate,
-  getToday,
-  parseDate,
-} from "../src/utils/dateUtils";
+} from '../src/types/habit';
+import { addDays, formatDate, getToday, parseDate } from '../src/utils/dateUtils';
 
-const KEYBOARD_ACCESSORY_ID = "editHabitNameAccessory";
+const KEYBOARD_ACCESSORY_ID = 'editHabitNameAccessory';
 
-type CadenceKind = "interval" | "perWeek" | "weekdays";
+type CadenceKind = 'interval' | 'perWeek' | 'weekdays';
 
 /**
  * Wrapper that waits for `useHabits` to finish loading before mounting the
@@ -58,17 +53,17 @@ export default function EditHabitScreen() {
         errorText: {
           color: colors.textMuted,
           fontSize: 16,
-          textAlign: "center",
+          textAlign: 'center',
           marginTop: 40,
         },
         loadingText: {
           color: colors.textSecondary,
           fontSize: 16,
-          textAlign: "center",
+          textAlign: 'center',
           marginTop: 40,
         },
       }),
-    [colors]
+    [colors],
   );
 
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -101,15 +96,9 @@ interface EditHabitFormProps {
     updates: Partial<
       Pick<
         HabitWithStatus,
-        | "name"
-        | "emoji"
-        | "frequency"
-        | "color"
-        | "reminderHour"
-        | "reminderMinute"
-        | "endDate"
+        'name' | 'emoji' | 'frequency' | 'color' | 'reminderHour' | 'reminderMinute' | 'endDate'
       >
-    >
+    >,
   ) => Promise<void>;
 }
 
@@ -127,21 +116,21 @@ function EditHabitForm({ habit, updateHabit }: EditHabitFormProps) {
         },
         label: {
           fontSize: 14,
-          fontWeight: "600",
+          fontWeight: '600',
           color: colors.textSecondary,
           marginBottom: 8,
           marginTop: 4,
         },
         subLabel: {
           fontSize: 12,
-          fontWeight: "600",
+          fontWeight: '600',
           color: colors.textMuted,
           marginBottom: 6,
           marginTop: 2,
         },
         nameRow: {
-          flexDirection: "row",
-          alignItems: "stretch",
+          flexDirection: 'row',
+          alignItems: 'stretch',
           gap: 10,
           marginBottom: 16,
         },
@@ -163,14 +152,14 @@ function EditHabitForm({ habit, updateHabit }: EditHabitFormProps) {
           backgroundColor: colors.inputBackground,
           borderWidth: 1,
           borderColor: colors.inputBorder,
-          alignItems: "center",
-          justifyContent: "center",
+          alignItems: 'center',
+          justifyContent: 'center',
         },
         emojiBoxText: {
           fontSize: 26,
         },
         colorRow: {
-          flexDirection: "row",
+          flexDirection: 'row',
           gap: 10,
           paddingRight: 4,
           paddingBottom: 16,
@@ -180,13 +169,13 @@ function EditHabitForm({ habit, updateHabit }: EditHabitFormProps) {
           height: 32,
           borderRadius: 10,
           borderWidth: 2,
-          borderColor: "transparent",
+          borderColor: 'transparent',
         },
         colorSwatchSelected: {
           borderColor: colors.textPrimary,
         },
         segmentedRow: {
-          flexDirection: "row",
+          flexDirection: 'row',
           backgroundColor: colors.inputBackground,
           borderRadius: 10,
           padding: 3,
@@ -197,26 +186,26 @@ function EditHabitForm({ habit, updateHabit }: EditHabitFormProps) {
           flex: 1,
           paddingVertical: 7,
           borderRadius: 8,
-          alignItems: "center",
+          alignItems: 'center',
         },
         segmentSelected: {
           backgroundColor: colors.card,
         },
         segmentText: {
           fontSize: 13,
-          fontWeight: "600",
+          fontWeight: '600',
           color: colors.textMuted,
         },
         segmentTextSelected: {
           color: colors.accent,
         },
         frequencyRow: {
-          flexDirection: "row",
+          flexDirection: 'row',
           gap: 8,
           marginBottom: 20,
         },
         numberRow: {
-          flexDirection: "row",
+          flexDirection: 'row',
           gap: 5,
           marginBottom: 20,
         },
@@ -225,18 +214,18 @@ function EditHabitForm({ habit, updateHabit }: EditHabitFormProps) {
           paddingVertical: 10,
           borderRadius: 10,
           backgroundColor: colors.inputBackground,
-          alignItems: "center",
+          alignItems: 'center',
           borderWidth: 2,
-          borderColor: "transparent",
+          borderColor: 'transparent',
         },
         numberPill: {
           flex: 1,
           paddingVertical: 10,
           borderRadius: 10,
           backgroundColor: colors.inputBackground,
-          alignItems: "center",
+          alignItems: 'center',
           borderWidth: 2,
-          borderColor: "transparent",
+          borderColor: 'transparent',
         },
         frequencyPillSelected: {
           borderColor: colors.accent,
@@ -244,15 +233,15 @@ function EditHabitForm({ habit, updateHabit }: EditHabitFormProps) {
         },
         frequencyPillText: {
           fontSize: 13,
-          fontWeight: "600",
+          fontWeight: '600',
           color: colors.textMuted,
         },
         frequencyPillTextSelected: {
           color: colors.accent,
         },
         endDateRow: {
-          flexDirection: "row",
-          alignItems: "center",
+          flexDirection: 'row',
+          alignItems: 'center',
           gap: 10,
           marginBottom: 20,
         },
@@ -268,11 +257,11 @@ function EditHabitForm({ habit, updateHabit }: EditHabitFormProps) {
         endDateText: {
           color: colors.textPrimary,
           fontSize: 15,
-          fontWeight: "600",
+          fontWeight: '600',
         },
         endDateTextEmpty: {
           color: colors.textMuted,
-          fontWeight: "500",
+          fontWeight: '500',
         },
         endDateClear: {
           width: 36,
@@ -281,19 +270,19 @@ function EditHabitForm({ habit, updateHabit }: EditHabitFormProps) {
           backgroundColor: colors.inputBackground,
           borderWidth: 1,
           borderColor: colors.inputBorder,
-          alignItems: "center",
-          justifyContent: "center",
+          alignItems: 'center',
+          justifyContent: 'center',
         },
         endDateClearText: {
           color: colors.textMuted,
           fontSize: 18,
-          fontWeight: "600",
+          fontWeight: '600',
         },
         saveButton: {
           backgroundColor: colors.accent,
           borderRadius: 12,
           padding: 14,
-          alignItems: "center",
+          alignItems: 'center',
         },
         saveButtonDisabled: {
           opacity: 0.4,
@@ -301,12 +290,12 @@ function EditHabitForm({ habit, updateHabit }: EditHabitFormProps) {
         saveButtonText: {
           color: colors.textPrimary,
           fontSize: 16,
-          fontWeight: "600",
+          fontWeight: '600',
         },
         accessoryBar: {
-          flexDirection: "row",
-          justifyContent: "flex-end",
-          alignItems: "center",
+          flexDirection: 'row',
+          justifyContent: 'flex-end',
+          alignItems: 'center',
           backgroundColor: colors.card,
           borderTopWidth: 1,
           borderTopColor: colors.cardBorder,
@@ -322,14 +311,14 @@ function EditHabitForm({ habit, updateHabit }: EditHabitFormProps) {
         accessoryButtonText: {
           color: colors.accent,
           fontSize: 15,
-          fontWeight: "600",
+          fontWeight: '600',
         },
         // End-date picker modal
         backdrop: {
           flex: 1,
-          backgroundColor: "rgba(0,0,0,0.55)",
-          justifyContent: "center",
-          alignItems: "center",
+          backgroundColor: 'rgba(0,0,0,0.55)',
+          justifyContent: 'center',
+          alignItems: 'center',
           paddingHorizontal: 20,
         },
         sheet: {
@@ -338,24 +327,24 @@ function EditHabitForm({ habit, updateHabit }: EditHabitFormProps) {
           padding: 16,
           borderWidth: 1,
           borderColor: colors.cardBorder,
-          width: "100%",
+          width: '100%',
           maxWidth: 360,
         },
         sheetTitle: {
           color: colors.textPrimary,
           fontSize: 16,
-          fontWeight: "600",
-          textAlign: "center",
+          fontWeight: '600',
+          textAlign: 'center',
           marginBottom: 8,
         },
         spinnerWrap: {
-          alignItems: "center",
-          justifyContent: "center",
+          alignItems: 'center',
+          justifyContent: 'center',
           marginBottom: 8,
         },
         actions: {
-          flexDirection: "row",
-          justifyContent: "flex-end",
+          flexDirection: 'row',
+          justifyContent: 'flex-end',
           gap: 8,
         },
         btn: {
@@ -369,7 +358,7 @@ function EditHabitForm({ habit, updateHabit }: EditHabitFormProps) {
         btnGhostText: {
           color: colors.textSecondary,
           fontSize: 14,
-          fontWeight: "600",
+          fontWeight: '600',
         },
         btnPrimary: {
           backgroundColor: colors.accent,
@@ -377,10 +366,10 @@ function EditHabitForm({ habit, updateHabit }: EditHabitFormProps) {
         btnPrimaryText: {
           color: colors.textPrimary,
           fontSize: 14,
-          fontWeight: "600",
+          fontWeight: '600',
         },
       }),
-    [colors]
+    [colors],
   );
 
   const router = useRouter();
@@ -388,49 +377,41 @@ function EditHabitForm({ habit, updateHabit }: EditHabitFormProps) {
   const [name, setName] = useState(habit.name);
   const [selectedEmoji, setSelectedEmoji] = useState(habit.emoji);
   const [emojiPickerOpen, setEmojiPickerOpen] = useState(false);
-  const [cadenceKind, setCadenceKind] = useState<CadenceKind>(
-    habit.frequency.kind
-  );
+  const [cadenceKind, setCadenceKind] = useState<CadenceKind>(habit.frequency.kind);
   const [intervalDays, setIntervalDays] = useState(
-    habit.frequency.kind === "interval" ? habit.frequency.days : 1
+    habit.frequency.kind === 'interval' ? habit.frequency.days : 1,
   );
   const [daysPerWeek, setDaysPerWeek] = useState(
-    habit.frequency.kind === "perWeek" ? habit.frequency.daysPerWeek : 3
+    habit.frequency.kind === 'perWeek' ? habit.frequency.daysPerWeek : 3,
   );
   const [selectedWeekdays, setSelectedWeekdays] = useState<number[]>(
-    habit.frequency.kind === "weekdays"
-      ? habit.frequency.weekdays
-      : [1, 2, 3, 4, 5]
+    habit.frequency.kind === 'weekdays' ? habit.frequency.weekdays : [1, 2, 3, 4, 5],
   );
   const [selectedColor, setSelectedColor] = useState(habit.color);
-  const [reminderHour, setReminderHour] = useState<number | null>(
-    habit.reminderHour
-  );
-  const [reminderMinute, setReminderMinute] = useState<number | null>(
-    habit.reminderMinute
-  );
+  const [reminderHour, setReminderHour] = useState<number | null>(habit.reminderHour);
+  const [reminderMinute, setReminderMinute] = useState<number | null>(habit.reminderMinute);
   const [endDate, setEndDate] = useState<string | null>(habit.endDate ?? null);
   const [endDatePickerOpen, setEndDatePickerOpen] = useState(false);
   const [endDateDraft, setEndDateDraft] = useState<Date>(() =>
-    parseDate(habit.endDate ?? addDays(getToday(), 7))
+    parseDate(habit.endDate ?? addDays(getToday(), 7)),
   );
 
   const toggleWeekday = (day: number) => {
     setSelectedWeekdays((prev) =>
-      prev.includes(day) ? prev.filter((d) => d !== day) : [...prev, day]
+      prev.includes(day) ? prev.filter((d) => d !== day) : [...prev, day],
     );
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
   };
 
   const buildFrequency = (): HabitFrequency => {
-    if (cadenceKind === "interval") {
-      return { kind: "interval", days: intervalDays };
+    if (cadenceKind === 'interval') {
+      return { kind: 'interval', days: intervalDays };
     }
-    if (cadenceKind === "perWeek") {
-      return { kind: "perWeek", daysPerWeek };
+    if (cadenceKind === 'perWeek') {
+      return { kind: 'perWeek', daysPerWeek };
     }
     return {
-      kind: "weekdays",
+      kind: 'weekdays',
       weekdays: [...selectedWeekdays].sort((a, b) => a - b),
     };
   };
@@ -448,29 +429,21 @@ function EditHabitForm({ habit, updateHabit }: EditHabitFormProps) {
       reminderMinute,
       endDate,
     });
-    await Haptics.notificationAsync(
-      Haptics.NotificationFeedbackType.Success
-    );
+    await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
     router.back();
   };
 
   const canSave =
-    name.trim().length > 0 &&
-    (cadenceKind !== "weekdays" || selectedWeekdays.length > 0);
+    name.trim().length > 0 && (cadenceKind !== 'weekdays' || selectedWeekdays.length > 0);
 
   // End-date picker minimum = tomorrow. (Editing an existing habit whose
   // end date is already today/past is allowed via clearing — we don't let
   // the user set a brand new end in the past.)
-  const minimumEndDate = useMemo(
-    () => parseDate(addDays(getToday(), 1)),
-    []
-  );
+  const minimumEndDate = useMemo(() => parseDate(addDays(getToday(), 1)), []);
 
   const openEndDatePicker = () => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-    const seed = endDate
-      ? parseDate(endDate)
-      : parseDate(addDays(getToday(), 7));
+    const seed = endDate ? parseDate(endDate) : parseDate(addDays(getToday(), 7));
     setEndDateDraft(seed);
     setEndDatePickerOpen(true);
   };
@@ -484,7 +457,7 @@ function EditHabitForm({ habit, updateHabit }: EditHabitFormProps) {
   return (
     <KeyboardAvoidingView
       style={styles.container}
-      behavior={Platform.OS === "ios" ? "padding" : "height"}
+      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
     >
       <ScrollView
         contentContainerStyle={styles.scrollContent}
@@ -503,9 +476,7 @@ function EditHabitForm({ habit, updateHabit }: EditHabitFormProps) {
             maxLength={50}
             returnKeyType="default"
             blurOnSubmit={false}
-            inputAccessoryViewID={
-              Platform.OS === "ios" ? KEYBOARD_ACCESSORY_ID : undefined
-            }
+            inputAccessoryViewID={Platform.OS === 'ios' ? KEYBOARD_ACCESSORY_ID : undefined}
           />
           <Pressable
             onPress={() => {
@@ -547,64 +518,46 @@ function EditHabitForm({ habit, updateHabit }: EditHabitFormProps) {
         <View style={styles.segmentedRow}>
           <Pressable
             onPress={() => {
-              setCadenceKind("interval");
+              setCadenceKind('interval');
               Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
             }}
-            style={[
-              styles.segment,
-              cadenceKind === "interval" && styles.segmentSelected,
-            ]}
+            style={[styles.segment, cadenceKind === 'interval' && styles.segmentSelected]}
           >
             <Text
-              style={[
-                styles.segmentText,
-                cadenceKind === "interval" && styles.segmentTextSelected,
-              ]}
+              style={[styles.segmentText, cadenceKind === 'interval' && styles.segmentTextSelected]}
             >
               Interval
             </Text>
           </Pressable>
           <Pressable
             onPress={() => {
-              setCadenceKind("perWeek");
+              setCadenceKind('perWeek');
               Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
             }}
-            style={[
-              styles.segment,
-              cadenceKind === "perWeek" && styles.segmentSelected,
-            ]}
+            style={[styles.segment, cadenceKind === 'perWeek' && styles.segmentSelected]}
           >
             <Text
-              style={[
-                styles.segmentText,
-                cadenceKind === "perWeek" && styles.segmentTextSelected,
-              ]}
+              style={[styles.segmentText, cadenceKind === 'perWeek' && styles.segmentTextSelected]}
             >
               Per week
             </Text>
           </Pressable>
           <Pressable
             onPress={() => {
-              setCadenceKind("weekdays");
+              setCadenceKind('weekdays');
               Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
             }}
-            style={[
-              styles.segment,
-              cadenceKind === "weekdays" && styles.segmentSelected,
-            ]}
+            style={[styles.segment, cadenceKind === 'weekdays' && styles.segmentSelected]}
           >
             <Text
-              style={[
-                styles.segmentText,
-                cadenceKind === "weekdays" && styles.segmentTextSelected,
-              ]}
+              style={[styles.segmentText, cadenceKind === 'weekdays' && styles.segmentTextSelected]}
             >
               Specific days
             </Text>
           </Pressable>
         </View>
 
-        {cadenceKind === "interval" ? (
+        {cadenceKind === 'interval' ? (
           <View style={styles.frequencyRow}>
             {INTERVAL_FREQUENCY_OPTIONS.map((option) => (
               <Pressable
@@ -621,8 +574,7 @@ function EditHabitForm({ habit, updateHabit }: EditHabitFormProps) {
                 <Text
                   style={[
                     styles.frequencyPillText,
-                    intervalDays === option.value &&
-                      styles.frequencyPillTextSelected,
+                    intervalDays === option.value && styles.frequencyPillTextSelected,
                   ]}
                 >
                   {option.label}
@@ -630,7 +582,7 @@ function EditHabitForm({ habit, updateHabit }: EditHabitFormProps) {
               </Pressable>
             ))}
           </View>
-        ) : cadenceKind === "perWeek" ? (
+        ) : cadenceKind === 'perWeek' ? (
           <>
             <Text style={styles.subLabel}>Days per week</Text>
             <View style={styles.numberRow}>
@@ -641,10 +593,7 @@ function EditHabitForm({ habit, updateHabit }: EditHabitFormProps) {
                     setDaysPerWeek(n);
                     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
                   }}
-                  style={[
-                    styles.numberPill,
-                    daysPerWeek === n && styles.frequencyPillSelected,
-                  ]}
+                  style={[styles.numberPill, daysPerWeek === n && styles.frequencyPillSelected]}
                 >
                   <Text
                     style={[
@@ -669,10 +618,7 @@ function EditHabitForm({ habit, updateHabit }: EditHabitFormProps) {
                     key={idx}
                     onPress={() => toggleWeekday(idx)}
                     accessibilityLabel={WEEKDAY_FULL[idx]}
-                    style={[
-                      styles.numberPill,
-                      selected && styles.frequencyPillSelected,
-                    ]}
+                    style={[styles.numberPill, selected && styles.frequencyPillSelected]}
                   >
                     <Text
                       style={[
@@ -693,20 +639,15 @@ function EditHabitForm({ habit, updateHabit }: EditHabitFormProps) {
         <Text style={styles.label}>End date (optional)</Text>
         <View style={styles.endDateRow}>
           <Pressable onPress={openEndDatePicker} style={styles.endDateButton}>
-            <Text
-              style={[
-                styles.endDateText,
-                !endDate && styles.endDateTextEmpty,
-              ]}
-            >
+            <Text style={[styles.endDateText, !endDate && styles.endDateTextEmpty]}>
               {endDate
-                ? parseDate(endDate).toLocaleDateString("en-US", {
-                    weekday: "short",
-                    month: "short",
-                    day: "numeric",
-                    year: "numeric",
+                ? parseDate(endDate).toLocaleDateString('en-US', {
+                    weekday: 'short',
+                    month: 'short',
+                    day: 'numeric',
+                    year: 'numeric',
                   })
-                : "Set end date ▾"}
+                : 'Set end date ▾'}
             </Text>
           </Pressable>
           {endDate && (
@@ -736,10 +677,7 @@ function EditHabitForm({ habit, updateHabit }: EditHabitFormProps) {
 
         {/* Save Button */}
         <Pressable
-          style={[
-            styles.saveButton,
-            !canSave && styles.saveButtonDisabled,
-          ]}
+          style={[styles.saveButton, !canSave && styles.saveButtonDisabled]}
           onPress={handleSave}
           disabled={!canSave}
         >
@@ -747,7 +685,7 @@ function EditHabitForm({ habit, updateHabit }: EditHabitFormProps) {
         </Pressable>
       </ScrollView>
 
-      {Platform.OS === "ios" && (
+      {Platform.OS === 'ios' && (
         <InputAccessoryView nativeID={KEYBOARD_ACCESSORY_ID}>
           <View style={styles.accessoryBar}>
             <Pressable
@@ -777,20 +715,14 @@ function EditHabitForm({ habit, updateHabit }: EditHabitFormProps) {
         animationType="fade"
         onRequestClose={() => setEndDatePickerOpen(false)}
       >
-        <Pressable
-          style={styles.backdrop}
-          onPress={() => setEndDatePickerOpen(false)}
-        >
-          <Pressable
-            style={styles.sheet}
-            onPress={(e) => e.stopPropagation()}
-          >
+        <Pressable style={styles.backdrop} onPress={() => setEndDatePickerOpen(false)}>
+          <Pressable style={styles.sheet} onPress={(e) => e.stopPropagation()}>
             <Text style={styles.sheetTitle}>End date</Text>
             <View style={styles.spinnerWrap}>
               <DateTimePicker
                 value={endDateDraft}
                 mode="date"
-                display={Platform.OS === "ios" ? "spinner" : "default"}
+                display={Platform.OS === 'ios' ? 'spinner' : 'default'}
                 themeVariant="dark"
                 textColor={colors.textPrimary}
                 minimumDate={minimumEndDate}
@@ -806,10 +738,7 @@ function EditHabitForm({ habit, updateHabit }: EditHabitFormProps) {
               >
                 <Text style={styles.btnGhostText}>Cancel</Text>
               </Pressable>
-              <Pressable
-                onPress={handleEndDateDone}
-                style={[styles.btn, styles.btnPrimary]}
-              >
+              <Pressable onPress={handleEndDateDone} style={[styles.btn, styles.btnPrimary]}>
                 <Text style={styles.btnPrimaryText}>Done</Text>
               </Pressable>
             </View>

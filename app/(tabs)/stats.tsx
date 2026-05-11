@@ -1,27 +1,19 @@
-import React, { useMemo, useState } from "react";
-import {
-  View,
-  Text,
-  TextInput,
-  StyleSheet,
-  ScrollView,
-  Pressable,
-  Switch,
-} from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
-import * as Haptics from "expo-haptics";
-import { useHabits } from "../../src/hooks/useHabits";
-import { CalendarGrid } from "../../src/components/CalendarGrid";
-import { MonthlyCalendar } from "../../src/components/MonthlyCalendar";
-import { YearGrid } from "../../src/components/YearGrid";
-import { HabitStrip } from "../../src/components/HabitStrip";
-import { NoteEditorModal } from "../../src/components/NoteEditorModal";
-import { useTheme } from "../../src/hooks/useTheme";
-import { formatDisplayDate } from "../../src/utils/dateUtils";
+import React, { useMemo, useState } from 'react';
+import { View, Text, TextInput, StyleSheet, ScrollView, Pressable, Switch } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import * as Haptics from 'expo-haptics';
+import { useHabits } from '../../src/hooks/useHabits';
+import { CalendarGrid } from '../../src/components/CalendarGrid';
+import { MonthlyCalendar } from '../../src/components/MonthlyCalendar';
+import { YearGrid } from '../../src/components/YearGrid';
+import { HabitStrip } from '../../src/components/HabitStrip';
+import { NoteEditorModal } from '../../src/components/NoteEditorModal';
+import { useTheme } from '../../src/hooks/useTheme';
+import { formatDisplayDate } from '../../src/utils/dateUtils';
 
-type CalendarView = "weeks" | "months" | "year";
+type CalendarView = 'weeks' | 'months' | 'year';
 
-const ALL_HABITS = "__all__";
+const ALL_HABITS = '__all__';
 
 export default function StatsScreen() {
   const { colors } = useTheme();
@@ -39,7 +31,7 @@ export default function StatsScreen() {
         },
         title: {
           fontSize: 28,
-          fontWeight: "bold",
+          fontWeight: 'bold',
           color: colors.textPrimary,
         },
         subtitle: {
@@ -53,11 +45,11 @@ export default function StatsScreen() {
         pickerContainer: {
           paddingHorizontal: 16,
           gap: 8,
-          alignItems: "center",
+          alignItems: 'center',
         },
         pickerItem: {
-          flexDirection: "row",
-          alignItems: "center",
+          flexDirection: 'row',
+          alignItems: 'center',
           backgroundColor: colors.card,
           paddingHorizontal: 14,
           height: 36,
@@ -78,7 +70,7 @@ export default function StatsScreen() {
         pickerName: {
           color: colors.textSecondary,
           fontSize: 14,
-          fontWeight: "500",
+          fontWeight: '500',
         },
         pickerNameSelected: {
           color: colors.textPrimary,
@@ -88,7 +80,7 @@ export default function StatsScreen() {
           paddingBottom: 32,
         },
         statsRow: {
-          flexDirection: "row",
+          flexDirection: 'row',
           gap: 6,
           marginBottom: 10,
         },
@@ -98,23 +90,23 @@ export default function StatsScreen() {
           borderRadius: 8,
           paddingVertical: 6,
           paddingHorizontal: 6,
-          alignItems: "center",
+          alignItems: 'center',
           borderWidth: 1,
           borderColor: colors.cardBorder,
         },
         statValue: {
           fontSize: 17,
-          fontWeight: "700",
+          fontWeight: '700',
           color: colors.textPrimary,
           marginBottom: 0,
         },
         statLabel: {
           fontSize: 10,
           color: colors.textMuted,
-          textAlign: "center",
+          textAlign: 'center',
         },
         toggleRow: {
-          flexDirection: "row",
+          flexDirection: 'row',
           backgroundColor: colors.card,
           borderRadius: 10,
           padding: 3,
@@ -126,14 +118,14 @@ export default function StatsScreen() {
           flex: 1,
           paddingVertical: 6,
           borderRadius: 8,
-          alignItems: "center",
+          alignItems: 'center',
         },
         toggleButtonActive: {
           backgroundColor: colors.accent,
         },
         toggleText: {
           fontSize: 13,
-          fontWeight: "600",
+          fontWeight: '600',
           color: colors.textMuted,
         },
         toggleTextActive: {
@@ -146,8 +138,8 @@ export default function StatsScreen() {
           lineHeight: 16,
         },
         backfillRow: {
-          flexDirection: "row",
-          alignItems: "center",
+          flexDirection: 'row',
+          alignItems: 'center',
           gap: 12,
           backgroundColor: colors.card,
           borderRadius: 12,
@@ -163,7 +155,7 @@ export default function StatsScreen() {
         backfillLabel: {
           color: colors.textPrimary,
           fontSize: 14,
-          fontWeight: "600",
+          fontWeight: '600',
         },
         backfillHelper: {
           color: colors.textMuted,
@@ -180,19 +172,19 @@ export default function StatsScreen() {
         },
         sectionTitle: {
           fontSize: 15,
-          fontWeight: "600",
+          fontWeight: '600',
           color: colors.textPrimary,
           marginBottom: 12,
         },
         legend: {
-          flexDirection: "row",
-          justifyContent: "center",
+          flexDirection: 'row',
+          justifyContent: 'center',
           marginTop: 16,
           gap: 16,
         },
         legendItem: {
-          flexDirection: "row",
-          alignItems: "center",
+          flexDirection: 'row',
+          alignItems: 'center',
           gap: 6,
         },
         legendDot: {
@@ -226,7 +218,7 @@ export default function StatsScreen() {
         notesEmpty: {
           color: colors.textMuted,
           fontSize: 13,
-          textAlign: "center",
+          textAlign: 'center',
           paddingVertical: 12,
         },
         noteRow: {
@@ -237,8 +229,8 @@ export default function StatsScreen() {
         noteDate: {
           color: colors.textMuted,
           fontSize: 11,
-          fontWeight: "600",
-          textTransform: "uppercase",
+          fontWeight: '600',
+          textTransform: 'uppercase',
           marginBottom: 4,
         },
         noteText: {
@@ -248,8 +240,8 @@ export default function StatsScreen() {
         },
         emptyContainer: {
           flex: 1,
-          alignItems: "center",
-          justifyContent: "center",
+          alignItems: 'center',
+          justifyContent: 'center',
           paddingBottom: 80,
         },
         emptyEmoji: {
@@ -261,15 +253,14 @@ export default function StatsScreen() {
           color: colors.textSecondary,
         },
       }),
-    [colors]
+    [colors],
   );
 
-  const { habits, rawHabits, setCompletionNote, toggleCompletionForDate } =
-    useHabits();
+  const { habits, rawHabits, setCompletionNote, toggleCompletionForDate } = useHabits();
   const [selectedId, setSelectedId] = useState<string>(ALL_HABITS);
-  const [calendarView, setCalendarView] = useState<CalendarView>("months");
+  const [calendarView, setCalendarView] = useState<CalendarView>('months');
   const [noteDate, setNoteDate] = useState<string | null>(null);
-  const [noteFilter, setNoteFilter] = useState("");
+  const [noteFilter, setNoteFilter] = useState('');
   // Backfill mode: when on, day taps in Weeks/Months toggle that day's
   // completion instead of opening the note editor. Lets the user log days
   // they forgot. Auto-resets to off whenever the selected habit changes
@@ -279,26 +270,8 @@ export default function StatsScreen() {
     setBackfillMode(false);
   }, [selectedId]);
 
-  if (habits.length === 0) {
-    return (
-      <SafeAreaView style={styles.container} edges={["top"]}>
-        <View style={styles.header}>
-          <Text style={styles.title}>Progress</Text>
-        </View>
-        <View style={styles.emptyContainer}>
-          <Text style={styles.emptyEmoji}>📊</Text>
-          <Text style={styles.emptyText}>
-            Add some habits to see your stats
-          </Text>
-        </View>
-      </SafeAreaView>
-    );
-  }
-
   const isAllView = selectedId === ALL_HABITS;
-  const selectedIndex = isAllView
-    ? -1
-    : habits.findIndex((h) => h.id === selectedId);
+  const selectedIndex = isAllView ? -1 : habits.findIndex((h) => h.id === selectedId);
   const selectedHabit = !isAllView ? habits[selectedIndex] : null;
   const selectedRawHabit = !isAllView ? rawHabits[selectedIndex] : null;
 
@@ -307,20 +280,30 @@ export default function StatsScreen() {
     if (!selectedRawHabit) return [];
     const entries = Object.entries(selectedRawHabit.notes);
     const q = noteFilter.trim().toLowerCase();
-    const matched = q
-      ? entries.filter(([, text]) => text.toLowerCase().includes(q))
-      : entries;
+    const matched = q ? entries.filter(([, text]) => text.toLowerCase().includes(q)) : entries;
     return matched.sort(([a], [b]) => (a < b ? 1 : -1));
   }, [selectedRawHabit, noteFilter]);
 
+  if (habits.length === 0) {
+    return (
+      <SafeAreaView style={styles.container} edges={['top']}>
+        <View style={styles.header}>
+          <Text style={styles.title}>Progress</Text>
+        </View>
+        <View style={styles.emptyContainer}>
+          <Text style={styles.emptyEmoji}>📊</Text>
+          <Text style={styles.emptyText}>Add some habits to see your stats</Text>
+        </View>
+      </SafeAreaView>
+    );
+  }
+
   return (
-    <SafeAreaView style={styles.container} edges={["top"]}>
+    <SafeAreaView style={styles.container} edges={['top']}>
       <View style={styles.header}>
         <Text style={styles.title}>Progress</Text>
         <Text style={styles.subtitle}>
-          {isAllView
-            ? "One mini-calendar per habit"
-            : "Tap a habit to switch views"}
+          {isAllView ? 'One mini-calendar per habit' : 'Tap a habit to switch views'}
         </Text>
       </View>
 
@@ -333,16 +316,10 @@ export default function StatsScreen() {
         >
           <Pressable
             onPress={() => setSelectedId(ALL_HABITS)}
-            style={[
-              styles.pickerItem,
-              isAllView && styles.pickerItemSelected,
-            ]}
+            style={[styles.pickerItem, isAllView && styles.pickerItemSelected]}
           >
             <Text
-              style={[
-                styles.pickerName,
-                isAllView && styles.pickerNameSelected,
-              ]}
+              style={[styles.pickerName, isAllView && styles.pickerNameSelected]}
               numberOfLines={1}
             >
               All habits
@@ -355,22 +332,11 @@ export default function StatsScreen() {
               <Pressable
                 key={habit.id}
                 onPress={() => setSelectedId(habit.id)}
-                style={[
-                  styles.pickerItem,
-                  isSelected && styles.pickerItemSelected,
-                ]}
+                style={[styles.pickerItem, isSelected && styles.pickerItemSelected]}
               >
-                <View
-                  style={[
-                    styles.pickerDot,
-                    { backgroundColor: habit.color },
-                  ]}
-                />
+                <View style={[styles.pickerDot, { backgroundColor: habit.color }]} />
                 <Text
-                  style={[
-                    styles.pickerName,
-                    isSelected && styles.pickerNameSelected,
-                  ]}
+                  style={[styles.pickerName, isSelected && styles.pickerNameSelected]}
                   numberOfLines={1}
                 >
                   {habit.name}
@@ -381,16 +347,12 @@ export default function StatsScreen() {
         </ScrollView>
       </View>
 
-      <ScrollView
-        showsVerticalScrollIndicator={false}
-        contentContainerStyle={styles.content}
-      >
+      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.content}>
         {isAllView ? (
           <>
             <Text style={styles.modeHint}>
-              Each cell = one day. Color = a day you did the habit. Empty =
-              inside the cadence window. Gray = missed once. Red = missed
-              twice. Most recent on the left.
+              Each cell = one day. Color = a day you did the habit. Empty = inside the cadence
+              window. Gray = missed once. Red = missed twice. Most recent on the left.
             </Text>
 
             {rawHabits.map((habit) => (
@@ -403,40 +365,21 @@ export default function StatsScreen() {
                 accessibilityRole="button"
                 accessibilityLabel={`Open ${habit.name} stats`}
               >
-                <HabitStrip
-                  habit={habit}
-                  mode="days"
-                  ascending={true}
-                />
+                <HabitStrip habit={habit} mode="days" ascending={true} />
               </Pressable>
             ))}
 
             <View style={styles.legend}>
               <View style={styles.legendItem}>
-                <View
-                  style={[
-                    styles.legendDot,
-                    { backgroundColor: colors.completed },
-                  ]}
-                />
+                <View style={[styles.legendDot, { backgroundColor: colors.completed }]} />
                 <Text style={styles.legendText}>On track</Text>
               </View>
               <View style={styles.legendItem}>
-                <View
-                  style={[
-                    styles.legendDot,
-                    { backgroundColor: colors.cellMissedOnce },
-                  ]}
-                />
+                <View style={[styles.legendDot, { backgroundColor: colors.cellMissedOnce }]} />
                 <Text style={styles.legendText}>Missed once</Text>
               </View>
               <View style={styles.legendItem}>
-                <View
-                  style={[
-                    styles.legendDot,
-                    { backgroundColor: colors.missed },
-                  ]}
-                />
+                <View style={[styles.legendDot, { backgroundColor: colors.missed }]} />
                 <Text style={styles.legendText}>Missed twice</Text>
               </View>
             </View>
@@ -448,15 +391,11 @@ export default function StatsScreen() {
               {/* Stats cards — compact one-line layout */}
               <View style={styles.statsRow}>
                 <View style={styles.statCard}>
-                  <Text style={styles.statValue}>
-                    {selectedHabit.currentStreak}
-                  </Text>
+                  <Text style={styles.statValue}>{selectedHabit.currentStreak}</Text>
                   <Text style={styles.statLabel}>Current Streak</Text>
                 </View>
                 <View style={styles.statCard}>
-                  <Text style={styles.statValue}>
-                    {selectedHabit.longestStreak}
-                  </Text>
+                  <Text style={styles.statValue}>{selectedHabit.longestStreak}</Text>
                   <Text style={styles.statLabel}>Longest Streak</Text>
                 </View>
                 <View style={styles.statCard}>
@@ -470,49 +409,43 @@ export default function StatsScreen() {
               {/* Calendar view toggle */}
               <View style={styles.toggleRow}>
                 <Pressable
-                  onPress={() => setCalendarView("weeks")}
+                  onPress={() => setCalendarView('weeks')}
                   style={[
                     styles.toggleButton,
-                    calendarView === "weeks" && styles.toggleButtonActive,
+                    calendarView === 'weeks' && styles.toggleButtonActive,
                   ]}
                 >
                   <Text
-                    style={[
-                      styles.toggleText,
-                      calendarView === "weeks" && styles.toggleTextActive,
-                    ]}
+                    style={[styles.toggleText, calendarView === 'weeks' && styles.toggleTextActive]}
                   >
                     Weeks
                   </Text>
                 </Pressable>
                 <Pressable
-                  onPress={() => setCalendarView("months")}
+                  onPress={() => setCalendarView('months')}
                   style={[
                     styles.toggleButton,
-                    calendarView === "months" && styles.toggleButtonActive,
+                    calendarView === 'months' && styles.toggleButtonActive,
                   ]}
                 >
                   <Text
                     style={[
                       styles.toggleText,
-                      calendarView === "months" && styles.toggleTextActive,
+                      calendarView === 'months' && styles.toggleTextActive,
                     ]}
                   >
                     Months
                   </Text>
                 </Pressable>
                 <Pressable
-                  onPress={() => setCalendarView("year")}
+                  onPress={() => setCalendarView('year')}
                   style={[
                     styles.toggleButton,
-                    calendarView === "year" && styles.toggleButtonActive,
+                    calendarView === 'year' && styles.toggleButtonActive,
                   ]}
                 >
                   <Text
-                    style={[
-                      styles.toggleText,
-                      calendarView === "year" && styles.toggleTextActive,
-                    ]}
+                    style={[styles.toggleText, calendarView === 'year' && styles.toggleTextActive]}
                   >
                     Year
                   </Text>
@@ -522,22 +455,20 @@ export default function StatsScreen() {
               {/* Backfill toggle — only on Weeks/Months (Year grid is too
                  dense to safely target individual days). When on, day taps
                  toggle completion instead of opening the note editor. */}
-              {(calendarView === "weeks" || calendarView === "months") && (
+              {(calendarView === 'weeks' || calendarView === 'months') && (
                 <View style={styles.backfillRow}>
                   <View style={styles.backfillTextWrap}>
                     <Text style={styles.backfillLabel}>Backfill mode</Text>
                     <Text style={styles.backfillHelper}>
                       {backfillMode
-                        ? "Tap a day to mark / unmark it complete."
-                        : "Tap a day to add a note. Turn on to log missed days."}
+                        ? 'Tap a day to mark / unmark it complete.'
+                        : 'Tap a day to add a note. Turn on to log missed days.'}
                     </Text>
                   </View>
                   <Switch
                     value={backfillMode}
                     onValueChange={(next) => {
-                      Haptics.impactAsync(
-                        Haptics.ImpactFeedbackStyle.Light
-                      );
+                      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
                       setBackfillMode(next);
                     }}
                     trackColor={{
@@ -550,7 +481,7 @@ export default function StatsScreen() {
               )}
 
               <View style={styles.calendarSection}>
-                {calendarView === "weeks" ? (
+                {calendarView === 'weeks' ? (
                   <>
                     <Text style={styles.sectionTitle}>Last 8 Weeks</Text>
                     <CalendarGrid
@@ -559,9 +490,7 @@ export default function StatsScreen() {
                       backfillMode={backfillMode}
                       onDayPress={(d) => {
                         if (backfillMode) {
-                          Haptics.notificationAsync(
-                            Haptics.NotificationFeedbackType.Success
-                          );
+                          Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
                           toggleCompletionForDate(selectedRawHabit.id, d);
                         } else {
                           setNoteDate(d);
@@ -569,15 +498,13 @@ export default function StatsScreen() {
                       }}
                     />
                   </>
-                ) : calendarView === "months" ? (
+                ) : calendarView === 'months' ? (
                   <MonthlyCalendar
                     habit={selectedRawHabit}
                     backfillMode={backfillMode}
                     onDayPress={(d) => {
                       if (backfillMode) {
-                        Haptics.notificationAsync(
-                          Haptics.NotificationFeedbackType.Success
-                        );
+                        Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
                         toggleCompletionForDate(selectedRawHabit.id, d);
                       } else {
                         setNoteDate(d);
@@ -585,10 +512,7 @@ export default function StatsScreen() {
                     }}
                   />
                 ) : (
-                  <YearGrid
-                    habit={selectedRawHabit}
-                    onDayPress={setNoteDate}
-                  />
+                  <YearGrid habit={selectedRawHabit} onDayPress={setNoteDate} />
                 )}
               </View>
 
@@ -604,9 +528,7 @@ export default function StatsScreen() {
                     onChangeText={setNoteFilter}
                   />
                   {filteredNotes.length === 0 ? (
-                    <Text style={styles.notesEmpty}>
-                      No notes match “{noteFilter}”
-                    </Text>
+                    <Text style={styles.notesEmpty}>No notes match “{noteFilter}”</Text>
                   ) : (
                     filteredNotes.map(([date, text]) => (
                       <Pressable
@@ -614,13 +536,8 @@ export default function StatsScreen() {
                         onPress={() => setNoteDate(date)}
                         style={styles.noteRow}
                       >
-                        <Text style={styles.noteDate}>
-                          {formatDisplayDate(date)}
-                        </Text>
-                        <Text
-                          style={styles.noteText}
-                          numberOfLines={3}
-                        >
+                        <Text style={styles.noteDate}>{formatDisplayDate(date)}</Text>
+                        <Text style={styles.noteText} numberOfLines={3}>
                           {text}
                         </Text>
                       </Pressable>

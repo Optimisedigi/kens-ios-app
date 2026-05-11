@@ -1,15 +1,9 @@
-import React, { useEffect, useMemo, useRef } from "react";
-import {
-  Animated,
-  Pressable,
-  StyleSheet,
-  Text,
-  View,
-} from "react-native";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
-import * as Haptics from "expo-haptics";
-import { useTheme } from "../hooks/useTheme";
-import { useNewBuildCheck } from "../hooks/useNewBuildCheck";
+import React, { useEffect, useMemo, useRef } from 'react';
+import { Animated, Pressable, StyleSheet, Text, View } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import * as Haptics from 'expo-haptics';
+import { useTheme } from '../hooks/useTheme';
+import { useNewBuildCheck } from '../hooks/useNewBuildCheck';
 
 /**
  * Top-of-screen banner that appears when a newer TestFlight build is
@@ -25,26 +19,21 @@ import { useNewBuildCheck } from "../hooks/useNewBuildCheck";
 export function NewBuildBanner() {
   const { colors } = useTheme();
   const insets = useSafeAreaInsets();
-  const {
-    updateAvailable,
-    forceUpdate,
-    latestVersion,
-    openTestFlight,
-    dismiss,
-  } = useNewBuildCheck();
+  const { updateAvailable, forceUpdate, latestVersion, openTestFlight, dismiss } =
+    useNewBuildCheck();
 
   const styles = useMemo(
     () =>
       StyleSheet.create({
         wrapper: {
-          position: "absolute",
+          position: 'absolute',
           left: 12,
           right: 12,
           zIndex: 9998, // sits just under UpdateToast's 9999
         },
         banner: {
-          flexDirection: "row",
-          alignItems: "center",
+          flexDirection: 'row',
+          alignItems: 'center',
           gap: 12,
           backgroundColor: colors.card,
           borderRadius: 14,
@@ -52,7 +41,7 @@ export function NewBuildBanner() {
           paddingVertical: 12,
           borderWidth: 1,
           borderColor: colors.accent,
-          shadowColor: "#000",
+          shadowColor: '#000',
           shadowOpacity: 0.4,
           shadowRadius: 14,
           shadowOffset: { width: 0, height: 5 },
@@ -63,13 +52,13 @@ export function NewBuildBanner() {
           height: 30,
           borderRadius: 15,
           backgroundColor: colors.accent,
-          alignItems: "center",
-          justifyContent: "center",
+          alignItems: 'center',
+          justifyContent: 'center',
         },
         iconText: {
           color: colors.textPrimary,
           fontSize: 16,
-          fontWeight: "700",
+          fontWeight: '700',
         },
         body: {
           flex: 1,
@@ -77,7 +66,7 @@ export function NewBuildBanner() {
         title: {
           color: colors.textPrimary,
           fontSize: 14,
-          fontWeight: "600",
+          fontWeight: '600',
         },
         subtitle: {
           color: colors.textMuted,
@@ -87,25 +76,25 @@ export function NewBuildBanner() {
         cta: {
           color: colors.accent,
           fontSize: 13,
-          fontWeight: "700",
+          fontWeight: '700',
           marginTop: 4,
         },
         closeButton: {
           width: 28,
           height: 28,
           borderRadius: 14,
-          alignItems: "center",
-          justifyContent: "center",
+          alignItems: 'center',
+          justifyContent: 'center',
           backgroundColor: colors.inputBackground,
         },
         closeText: {
           color: colors.textMuted,
           fontSize: 18,
           lineHeight: 18,
-          fontWeight: "600",
+          fontWeight: '600',
         },
       }),
-    [colors]
+    [colors],
   );
 
   const opacity = useRef(new Animated.Value(0)).current;
@@ -161,12 +150,12 @@ export function NewBuildBanner() {
           accessibilityLabel="Open TestFlight to update"
         >
           <Text style={styles.title}>
-            {forceUpdate ? "Update required" : "New version available"}
+            {forceUpdate ? 'Update required' : 'New version available'}
           </Text>
           <Text style={styles.subtitle}>
             {latestVersion
               ? `Version ${latestVersion} is ready in TestFlight.`
-              : "A newer build is ready in TestFlight."}
+              : 'A newer build is ready in TestFlight.'}
           </Text>
           <Text style={styles.cta}>Open TestFlight →</Text>
         </Pressable>

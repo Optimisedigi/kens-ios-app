@@ -1,6 +1,6 @@
-import React, { useMemo } from "react";
-import { View, Text, StyleSheet, Pressable } from "react-native";
-import { useTheme } from "../hooks/useTheme";
+import React, { useMemo } from 'react';
+import { View, Text, StyleSheet, Pressable } from 'react-native';
+import { useTheme } from '../hooks/useTheme';
 
 interface EmptyStateProps {
   onAddHabit: () => void;
@@ -13,8 +13,8 @@ export function EmptyState({ onAddHabit }: EmptyStateProps) {
       StyleSheet.create({
         container: {
           flex: 1,
-          alignItems: "center",
-          justifyContent: "center",
+          alignItems: 'center',
+          justifyContent: 'center',
           paddingHorizontal: 32,
           paddingBottom: 80,
         },
@@ -24,14 +24,14 @@ export function EmptyState({ onAddHabit }: EmptyStateProps) {
         },
         title: {
           fontSize: 24,
-          fontWeight: "bold",
+          fontWeight: 'bold',
           color: colors.textPrimary,
           marginBottom: 8,
         },
         subtitle: {
           fontSize: 16,
           color: colors.textSecondary,
-          textAlign: "center",
+          textAlign: 'center',
           lineHeight: 24,
           marginBottom: 32,
         },
@@ -44,10 +44,10 @@ export function EmptyState({ onAddHabit }: EmptyStateProps) {
         buttonText: {
           color: colors.textPrimary,
           fontSize: 16,
-          fontWeight: "600",
+          fontWeight: '600',
         },
       }),
-    [colors]
+    [colors],
   );
 
   return (
@@ -55,8 +55,8 @@ export function EmptyState({ onAddHabit }: EmptyStateProps) {
       <Text style={styles.emoji}>🎯</Text>
       <Text style={styles.title}>No habits yet</Text>
       <Text style={styles.subtitle}>
-        Add your first habit and start building{"\n"}consistency. Remember:
-        you can miss once,{"\n"}but never twice!
+        Add your first habit and start building{'\n'}consistency. Remember: you can miss once,{'\n'}
+        but never twice!
       </Text>
       <Pressable style={styles.button} onPress={onAddHabit}>
         <Text style={styles.buttonText}>+ Add Your First Habit</Text>

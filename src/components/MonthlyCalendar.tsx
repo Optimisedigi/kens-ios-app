@@ -1,20 +1,9 @@
-import React, { useEffect, useMemo, useRef, useState } from "react";
-import {
-  View,
-  Text,
-  StyleSheet,
-  Pressable,
-  PanResponder,
-} from "react-native";
-import { Habit } from "../types/habit";
-import { useTheme } from "../hooks/useTheme";
-import { DayCell } from "./DayCell";
-import {
-  formatDate,
-  parseDate,
-  getToday,
-  getDayStatus,
-} from "../utils/dateUtils";
+import React, { useEffect, useMemo, useRef, useState } from 'react';
+import { View, Text, StyleSheet, Pressable, PanResponder } from 'react-native';
+import { Habit } from '../types/habit';
+import { useTheme } from '../hooks/useTheme';
+import { DayCell } from './DayCell';
+import { formatDate, parseDate, getToday, getDayStatus } from '../utils/dateUtils';
 
 interface MonthlyCalendarProps {
   habit: Habit;
@@ -35,7 +24,7 @@ interface MonthData {
   month: number; // 0-indexed
 }
 
-const DAY_LABELS = ["S", "M", "T", "W", "T", "F", "S"];
+const DAY_LABELS = ['S', 'M', 'T', 'W', 'T', 'F', 'S'];
 const CELL_SIZE = 38;
 /** Horizontal pan distance (px) required to count as a swipe. */
 const SWIPE_THRESHOLD = 40;
@@ -48,10 +37,7 @@ const SWIPE_THRESHOLD = 40;
  * earlier than `createdAt` so the user can navigate to pre-creation
  * months in backfill mode.
  */
-function getMonthRange(
-  createdAt: string,
-  extraMonthsBack: number = 0
-): MonthData[] {
+function getMonthRange(createdAt: string, extraMonthsBack: number = 0): MonthData[] {
   const created = parseDate(createdAt);
   if (extraMonthsBack > 0) {
     created.setMonth(created.getMonth() - extraMonthsBack);
@@ -67,7 +53,7 @@ function getMonthRange(
   while (y < endY || (y === endY && m <= endM)) {
     const d = new Date(y, m, 1);
     months.push({
-      label: d.toLocaleDateString("en-US", { month: "long", year: "numeric" }),
+      label: d.toLocaleDateString('en-US', { month: 'long', year: 'numeric' }),
       year: y,
       month: m,
     });
@@ -100,21 +86,21 @@ function MonthGrid({
           marginBottom: 4,
         },
         weekRow: {
-          flexDirection: "row",
-          justifyContent: "center",
+          flexDirection: 'row',
+          justifyContent: 'center',
         },
         headerCell: {
           width: CELL_SIZE,
           margin: 2,
-          alignItems: "center",
+          alignItems: 'center',
         },
         headerText: {
           color: colors.textMuted,
           fontSize: 12,
-          fontWeight: "600",
+          fontWeight: '600',
         },
       }),
-    [colors]
+    [colors],
   );
 
   const todayStr = getToday();
@@ -180,15 +166,13 @@ function MonthGrid({
               );
             }
             const inRange = dateStr >= anchor && dateStr <= todayStr;
-            const status = inRange ? getDayStatus(habit, dateStr) : "empty";
+            const status = inRange ? getDayStatus(habit, dateStr) : 'empty';
             const dayNum = parseDate(dateStr).getDate().toString();
             // In backfill mode we drop the `>= createdAt` floor so the
             // user can log history that predates when they added the
             // habit to the app. Future dates stay non-tappable.
             const tappable =
-              onDayPress &&
-              dateStr <= todayStr &&
-              (backfillMode || dateStr >= habit.createdAt);
+              onDayPress && dateStr <= todayStr && (backfillMode || dateStr >= habit.createdAt);
             return (
               <DayCell
                 key={dateStr}
@@ -197,9 +181,7 @@ function MonthGrid({
                 size={CELL_SIZE}
                 hasNote={Boolean(habit.notes[dateStr])}
                 tappableHint={backfillMode && tappable}
-                onPress={
-                  tappable ? () => onDayPress!(dateStr) : undefined
-                }
+                onPress={tappable ? () => onDayPress!(dateStr) : undefined}
               />
             );
           })}
@@ -209,27 +191,23 @@ function MonthGrid({
   );
 }
 
-export function MonthlyCalendar({
-  habit,
-  onDayPress,
-  backfillMode,
-}: MonthlyCalendarProps) {
+export function MonthlyCalendar({ habit, onDayPress, backfillMode }: MonthlyCalendarProps) {
   const { colors } = useTheme();
   const styles = useMemo(
     () =>
       StyleSheet.create({
         navRow: {
-          flexDirection: "row",
-          alignItems: "center",
-          justifyContent: "space-between",
+          flexDirection: 'row',
+          alignItems: 'center',
+          justifyContent: 'space-between',
           marginBottom: 12,
           paddingHorizontal: 4,
         },
         navButton: {
           width: 36,
           height: 36,
-          alignItems: "center",
-          justifyContent: "center",
+          alignItems: 'center',
+          justifyContent: 'center',
           borderRadius: 8,
           backgroundColor: colors.inputBackground,
         },
@@ -240,25 +218,25 @@ export function MonthlyCalendar({
           color: colors.textPrimary,
           fontSize: 22,
           lineHeight: 24,
-          fontWeight: "600",
+          fontWeight: '600',
         },
         navChevronDisabled: {
           color: colors.textMuted,
         },
         monthLabel: {
           fontSize: 16,
-          fontWeight: "600",
+          fontWeight: '600',
           color: colors.textPrimary,
         },
         legend: {
-          flexDirection: "row",
-          justifyContent: "center",
+          flexDirection: 'row',
+          justifyContent: 'center',
           marginTop: 12,
           gap: 16,
         },
         legendItem: {
-          flexDirection: "row",
-          alignItems: "center",
+          flexDirection: 'row',
+          alignItems: 'center',
           gap: 6,
         },
         legendDot: {
@@ -269,7 +247,7 @@ export function MonthlyCalendar({
         monthStats: {
           fontSize: 12,
           color: colors.textMuted,
-          textAlign: "center",
+          textAlign: 'center',
           marginTop: 8,
         },
         legendText: {
@@ -277,14 +255,14 @@ export function MonthlyCalendar({
           fontSize: 12,
         },
       }),
-    [colors]
+    [colors],
   );
 
   // In backfill mode we expose 24 extra months before `createdAt` so the
   // user can log history from before they added the habit to the app.
   const months = useMemo(
     () => getMonthRange(habit.createdAt, backfillMode ? 24 : 0),
-    [habit.createdAt, backfillMode]
+    [habit.createdAt, backfillMode],
   );
   // Default to the current month (last entry).
   const [index, setIndex] = useState(months.length - 1);
@@ -316,7 +294,7 @@ export function MonthlyCalendar({
         if (g.dx <= -SWIPE_THRESHOLD) goNext();
         else if (g.dx >= SWIPE_THRESHOLD) goPrev();
       },
-    })
+    }),
   ).current;
 
   const current = months[index];
@@ -325,24 +303,20 @@ export function MonthlyCalendar({
   // createdAt and today.
   const todayStr = getToday();
   const monthFirst = formatDate(new Date(current.year, current.month, 1));
-  const monthLast = formatDate(
-    new Date(current.year, current.month + 1, 0)
-  );
-  const statsStart =
-    habit.createdAt > monthFirst ? habit.createdAt : monthFirst;
+  const monthLast = formatDate(new Date(current.year, current.month + 1, 0));
+  const statsStart = habit.createdAt > monthFirst ? habit.createdAt : monthFirst;
   const statsEnd = todayStr < monthLast ? todayStr : monthLast;
   let daysElapsed = 0;
   if (statsStart <= statsEnd) {
     const a = parseDate(statsStart);
     const b = parseDate(statsEnd);
-    daysElapsed =
-      Math.round((b.getTime() - a.getTime()) / (1000 * 60 * 60 * 24)) + 1;
+    daysElapsed = Math.round((b.getTime() - a.getTime()) / (1000 * 60 * 60 * 24)) + 1;
   }
   const completionsThisMonth = habit.completions.filter(
-    (d) => d >= monthFirst && d <= monthLast
+    (d) => d >= monthFirst && d <= monthLast,
   ).length;
   const notesThisMonth = Object.keys(habit.notes).filter(
-    (d) => d >= monthFirst && d <= monthLast
+    (d) => d >= monthFirst && d <= monthLast,
   ).length;
 
   return (
@@ -355,14 +329,7 @@ export function MonthlyCalendar({
           hitSlop={10}
           style={[styles.navButton, !canGoPrev && styles.navButtonDisabled]}
         >
-          <Text
-            style={[
-              styles.navChevron,
-              !canGoPrev && styles.navChevronDisabled,
-            ]}
-          >
-            ‹
-          </Text>
+          <Text style={[styles.navChevron, !canGoPrev && styles.navChevronDisabled]}>‹</Text>
         </Pressable>
         <Text style={styles.monthLabel}>{current.label}</Text>
         <Pressable
@@ -371,14 +338,7 @@ export function MonthlyCalendar({
           hitSlop={10}
           style={[styles.navButton, !canGoNext && styles.navButtonDisabled]}
         >
-          <Text
-            style={[
-              styles.navChevron,
-              !canGoNext && styles.navChevronDisabled,
-            ]}
-          >
-            ›
-          </Text>
+          <Text style={[styles.navChevron, !canGoNext && styles.navChevronDisabled]}>›</Text>
         </Pressable>
       </View>
 
@@ -395,21 +355,11 @@ export function MonthlyCalendar({
       {/* Legend */}
       <View style={styles.legend}>
         <View style={styles.legendItem}>
-          <View
-            style={[
-              styles.legendDot,
-              { backgroundColor: colors.cellCompleted },
-            ]}
-          />
+          <View style={[styles.legendDot, { backgroundColor: colors.cellCompleted }]} />
           <Text style={styles.legendText}>Completed</Text>
         </View>
         <View style={styles.legendItem}>
-          <View
-            style={[
-              styles.legendDot,
-              { backgroundColor: colors.cellMissedTwice },
-            ]}
-          />
+          <View style={[styles.legendDot, { backgroundColor: colors.cellMissedTwice }]} />
           <Text style={styles.legendText}>Missed twice</Text>
         </View>
       </View>
@@ -417,8 +367,8 @@ export function MonthlyCalendar({
       {/* Stats line for this month, below the legend */}
       <Text style={styles.monthStats}>
         {completionsThisMonth} / {daysElapsed} day
-        {daysElapsed === 1 ? "" : "s"} · {notesThisMonth} note
-        {notesThisMonth === 1 ? "" : "s"}
+        {daysElapsed === 1 ? '' : 's'} · {notesThisMonth} note
+        {notesThisMonth === 1 ? '' : 's'}
       </Text>
     </View>
   );

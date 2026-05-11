@@ -1,7 +1,7 @@
-import { useEffect, useRef, useState } from "react";
-import { AppState, AppStateStatus, Linking } from "react-native";
-import Constants from "expo-constants";
-import AsyncStorage from "@react-native-async-storage/async-storage";
+import { useEffect, useRef, useState } from 'react';
+import { AppState, AppStateStatus, Linking } from 'react-native';
+import Constants from 'expo-constants';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 /**
  * Polls a tiny version manifest hosted on GitHub raw to detect when a newer
@@ -27,9 +27,9 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 // Public raw URL of the manifest in the project repo. Bump `latest` in
 // version.json on `main` whenever you submit a new TestFlight build.
 const MANIFEST_URL =
-  "https://raw.githubusercontent.com/Optimisedigi/kens-ios-app/main/version.json";
+  'https://raw.githubusercontent.com/Optimisedigi/kens-ios-app/main/version.json';
 
-const DISMISSED_KEY = "newBuild:dismissedVersion";
+const DISMISSED_KEY = 'newBuild:dismissedVersion';
 
 interface VersionManifest {
   latest: string;
@@ -39,8 +39,8 @@ interface VersionManifest {
 
 /** Compare two semver-ish strings ("1.0.2" vs "1.0.10"). Returns -1/0/1. */
 function compareVersions(a: string, b: string): number {
-  const pa = a.split(".").map((n) => parseInt(n, 10) || 0);
-  const pb = b.split(".").map((n) => parseInt(n, 10) || 0);
+  const pa = a.split('.').map((n) => parseInt(n, 10) || 0);
+  const pb = b.split('.').map((n) => parseInt(n, 10) || 0);
   const len = Math.max(pa.length, pb.length);
   for (let i = 0; i < len; i++) {
     const da = pa[i] ?? 0;
@@ -74,8 +74,7 @@ export function useNewBuildCheck(): NewBuildState {
 
   // Installed app version, e.g. "1.0.1". `expoConfig.version` is the value
   // we set in app.json and is what EAS bakes into the build.
-  const installedVersion =
-    Constants.expoConfig?.version ?? Constants.nativeAppVersion ?? "0.0.0";
+  const installedVersion = Constants.expoConfig?.version ?? Constants.nativeAppVersion ?? '0.0.0';
 
   const checkManifest = async () => {
     if (fetching.current) return;
@@ -112,23 +111,17 @@ export function useNewBuildCheck(): NewBuildState {
 
   useEffect(() => {
     checkManifest();
-    const sub = AppState.addEventListener(
-      "change",
-      (state: AppStateStatus) => {
-        if (state === "active") checkManifest();
-      }
-    );
+    const sub = AppState.addEventListener('change', (state: AppStateStatus) => {
+      if (state === 'active') checkManifest();
+    });
     return () => sub.remove();
     // installedVersion is read inside checkManifest but it's a constant
     // for the lifetime of the JS bundle, so the empty dep array is fine.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const isNewer =
-    latestVersion !== null &&
-    compareVersions(installedVersion, latestVersion) < 0;
-  const dismissedThisVersion =
-    dismissedVersion !== null && dismissedVersion === latestVersion;
+  const isNewer = latestVersion !== null && compareVersions(installedVersion, latestVersion) < 0;
+  const dismissedThisVersion = dismissedVersion !== null && dismissedVersion === latestVersion;
 
   // Soft banner: newer build exists, user hasn't already silenced this version.
   // Force banner: always shown, ignores dismissedVersion.
@@ -137,8 +130,8 @@ export function useNewBuildCheck(): NewBuildState {
   const openTestFlight = async () => {
     // TestFlight's URL scheme. If TestFlight isn't installed (rare for
     // beta testers, but possible), fall back to the App Store listing.
-    const testflightUrl = "itms-beta://";
-    const appStoreFallback = "https://apps.apple.com/app/id6764674773";
+    const testflightUrl = 'itms-beta://';
+    const appStoreFallback = 'https://apps.apple.com/app/id6764674773';
     try {
       const supported = await Linking.canOpenURL(testflightUrl);
       await Linking.openURL(supported ? testflightUrl : appStoreFallback);

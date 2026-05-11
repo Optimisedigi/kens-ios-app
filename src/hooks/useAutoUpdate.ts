@@ -1,6 +1,6 @@
-import { useEffect, useRef, useState } from "react";
-import { AppState, AppStateStatus } from "react-native";
-import * as Updates from "expo-updates";
+import { useEffect, useRef, useState } from 'react';
+import { AppState, AppStateStatus } from 'react-native';
+import * as Updates from 'expo-updates';
 
 /**
  * Auto-update hook with a toast UX.
@@ -36,12 +36,9 @@ export function useAutoUpdate() {
 
   useEffect(() => {
     checkForUpdate();
-    const sub = AppState.addEventListener(
-      "change",
-      (state: AppStateStatus) => {
-        if (state === "active") checkForUpdate();
-      }
-    );
+    const sub = AppState.addEventListener('change', (state: AppStateStatus) => {
+      if (state === 'active') checkForUpdate();
+    });
     return () => sub.remove();
   }, []);
 

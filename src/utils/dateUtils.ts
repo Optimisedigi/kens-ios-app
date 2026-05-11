@@ -1,4 +1,4 @@
-import { Habit, HabitStatus, HabitWithStatus } from "../types/habit";
+import { Habit, HabitStatus, HabitWithStatus } from '../types/habit';
 
 /** Returns today's date as YYYY-MM-DD string in local timezone */
 export function getToday(): string {
@@ -9,14 +9,14 @@ export function getToday(): string {
 /** Formats a Date object as YYYY-MM-DD in local timezone */
 export function formatDate(date: Date): string {
   const year = date.getFullYear();
-  const month = String(date.getMonth() + 1).padStart(2, "0");
-  const day = String(date.getDate()).padStart(2, "0");
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
   return `${year}-${month}-${day}`;
 }
 
 /** Parses a YYYY-MM-DD string into a Date object (at midnight local time) */
 export function parseDate(dateStr: string): Date {
-  const [year, month, day] = dateStr.split("-").map(Number);
+  const [year, month, day] = dateStr.split('-').map(Number);
   return new Date(year, month - 1, day);
 }
 
@@ -37,7 +37,7 @@ export function getYesterday(): string {
 
 /** True iff `dateStr` is one of the habit's selected weekdays. */
 function isDueOnWeekday(habit: Habit, dateStr: string): boolean {
-  if (habit.frequency.kind !== "weekdays") return true;
+  if (habit.frequency.kind !== 'weekdays') return true;
   const weekday = parseDate(dateStr).getDay();
   return habit.frequency.weekdays.includes(weekday);
 }
@@ -48,7 +48,7 @@ function isDueOnWeekday(habit: Habit, dateStr: string): boolean {
  * (which the storage layer guards against).
  */
 function lastDueOnOrBefore(habit: Habit, dateStr: string): string | null {
-  if (habit.frequency.kind !== "weekdays") return dateStr;
+  if (habit.frequency.kind !== 'weekdays') return dateStr;
   const set = new Set(habit.frequency.weekdays);
   let cur = dateStr;
   for (let i = 0; i < 7; i++) {
@@ -60,7 +60,7 @@ function lastDueOnOrBefore(habit: Habit, dateStr: string): string | null {
 
 /** Returns the next due weekday strictly after `dateStr`. */
 function nextDueAfter(habit: Habit, dateStr: string): string | null {
-  if (habit.frequency.kind !== "weekdays") return addDays(dateStr, 1);
+  if (habit.frequency.kind !== 'weekdays') return addDays(dateStr, 1);
   const set = new Set(habit.frequency.weekdays);
   let cur = addDays(dateStr, 1);
   for (let i = 0; i < 7; i++) {
@@ -72,7 +72,7 @@ function nextDueAfter(habit: Habit, dateStr: string): string | null {
 
 /** Returns the previous due weekday strictly before `dateStr`. */
 function prevDueBefore(habit: Habit, dateStr: string): string | null {
-  if (habit.frequency.kind !== "weekdays") return addDays(dateStr, -1);
+  if (habit.frequency.kind !== 'weekdays') return addDays(dateStr, -1);
   const set = new Set(habit.frequency.weekdays);
   let cur = addDays(dateStr, -1);
   for (let i = 0; i < 7; i++) {
@@ -83,10 +83,7 @@ function prevDueBefore(habit: Habit, dateStr: string): string | null {
 }
 
 /** Counts completions in the rolling 7-day window ending on `endDateStr` (inclusive). */
-function countCompletionsInRollingWeek(
-  habit: Habit,
-  endDateStr: string
-): number {
+function countCompletionsInRollingWeek(habit: Habit, endDateStr: string): number {
   const completionSet = new Set(habit.completions);
   let count = 0;
   for (let i = 0; i < 7; i++) {
@@ -102,19 +99,17 @@ export function getHabitStatus(habit: Habit): HabitStatus {
   const today = getToday();
 
   if (habit.completions.includes(today)) {
-    return "completed_today";
+    return 'completed_today';
   }
 
-  if (habit.frequency.kind === "weekdays") {
-    if (habit.frequency.weekdays.length === 0) return "safe";
+  if (habit.frequency.kind === 'weekdays') {
+    if (habit.frequency.weekdays.length === 0) return 'safe';
     const completionSet = new Set(habit.completions);
 
     // Find the two most recent due-days at or before today (today inclusive).
     const lastDue = lastDueOnOrBefore(habit, today);
     const lastDueWasMissed =
-      lastDue !== null &&
-      lastDue >= habit.createdAt &&
-      !completionSet.has(lastDue);
+      lastDue !== null && lastDue >= habit.createdAt && !completionSet.has(lastDue);
 
     let prevDueWasMissed = false;
     if (lastDue) {
@@ -137,72 +132,61 @@ export function getHabitStatus(habit: Habit): HabitStatus {
       // Today is due. "missed_twice" only when the previous due day was
       // also missed — today is the user's chance to recover.
       const prevDue = prevDueBefore(habit, today);
-      if (
-        prevDue !== null &&
-        prevDue >= habit.createdAt &&
-        !completionSet.has(prevDue)
-      ) {
+      if (prevDue !== null && prevDue >= habit.createdAt && !completionSet.has(prevDue)) {
         // Previous due also missed — if today not done either, that's the
         // second consecutive miss locked in.
         const prevPrev = prevDueBefore(habit, prevDue);
-        if (
-          prevPrev !== null &&
-          prevPrev >= habit.createdAt &&
-          !completionSet.has(prevPrev)
-        ) {
-          return "missed_twice";
+        if (prevPrev !== null && prevPrev >= habit.createdAt && !completionSet.has(prevPrev)) {
+          return 'missed_twice';
         }
-        return "warning";
+        return 'warning';
       }
       // Today is the first due day after a recovery (or first ever).
       if (habit.completions.length === 0 && habit.createdAt === today) {
-        return "new";
+        return 'new';
       }
-      return "safe";
+      return 'safe';
     }
 
     // Today is NOT a due day. Look at the last two due days that are fully
     // past (i.e. before today). Both missed → missed_twice; one missed
     // → warning; otherwise safe.
-    if (lastDueWasMissed && prevDueWasMissed) return "missed_twice";
-    if (lastDueWasMissed) return "warning";
-    return "safe";
+    if (lastDueWasMissed && prevDueWasMissed) return 'missed_twice';
+    if (lastDueWasMissed) return 'warning';
+    return 'safe';
   }
 
-  if (habit.frequency.kind === "perWeek") {
+  if (habit.frequency.kind === 'perWeek') {
     const target = habit.frequency.daysPerWeek;
     const doneThisWeek = countCompletionsInRollingWeek(habit, today);
 
     // Plenty completed in the rolling week → safe.
-    if (doneThisWeek >= target) return "safe";
+    if (doneThisWeek >= target) return 'safe';
 
     // Look at the rolling week ending yesterday: how many remain to hit the
     // target after that window slides off? We measure deficits across two
     // consecutive rolling windows to decide "missed twice".
     const yesterday = addDays(today, -1);
     if (yesterday >= habit.createdAt) {
-      const doneYesterdayWeek = countCompletionsInRollingWeek(
-        habit,
-        yesterday
-      );
+      const doneYesterdayWeek = countCompletionsInRollingWeek(habit, yesterday);
       // Two consecutive windows below target with no chance of recovery on
       // the second → missed twice. We check that the second (today's) window
       // *cannot* hit the target by completing today: if doneThisWeek+1 still
       // < target, today alone won't save it, so it's already missed twice.
       if (doneYesterdayWeek < target && doneThisWeek + 1 < target) {
-        return "missed_twice";
+        return 'missed_twice';
       }
       // One window short and today is the deciding day → warning.
       if (doneYesterdayWeek < target && doneThisWeek + 1 >= target) {
-        return "warning";
+        return 'warning';
       }
     }
 
     // First week of the habit, target not yet met but achievable → safe/new.
     if (habit.completions.length === 0 && habit.createdAt === today) {
-      return "new";
+      return 'new';
     }
-    return "safe";
+    return 'safe';
   }
 
   // Interval-based cadence (legacy semantics).
@@ -210,12 +194,12 @@ export function getHabitStatus(habit: Habit): HabitStatus {
 
   if (habit.completions.length === 0) {
     if (habit.createdAt === today) {
-      return "new";
+      return 'new';
     }
     const daysSinceCreated = getDaysBetween(habit.createdAt, today);
-    if (daysSinceCreated < f) return "safe";
-    if (daysSinceCreated < f * 2) return "warning";
-    return "missed_twice";
+    if (daysSinceCreated < f) return 'safe';
+    if (daysSinceCreated < f * 2) return 'warning';
+    return 'missed_twice';
   }
 
   const sortedCompletions = [...habit.completions].sort().reverse();
@@ -223,19 +207,19 @@ export function getHabitStatus(habit: Habit): HabitStatus {
   const daysSince = getDaysBetween(lastCompleted, today);
 
   if (daysSince === 0) {
-    return "completed_today"; // safety check
+    return 'completed_today'; // safety check
   }
 
   if (daysSince < f) {
-    return "safe"; // still within current period
+    return 'safe'; // still within current period
   }
 
   if (daysSince < f * 2) {
-    return "warning"; // used your grace, do it today
+    return 'warning'; // used your grace, do it today
   }
 
   // daysSince >= f * 2: missed twice
-  return "missed_twice";
+  return 'missed_twice';
 }
 
 /** Gets the number of days since last completion, or null if never completed */
@@ -250,7 +234,7 @@ export function getDaysSinceLastCompleted(habit: Habit): number | null {
 export function getCurrentStreak(habit: Habit): number {
   if (habit.completions.length === 0) return 0;
 
-  if (habit.frequency.kind === "weekdays") {
+  if (habit.frequency.kind === 'weekdays') {
     if (habit.frequency.weekdays.length === 0) return 0;
     const completionSet = new Set(habit.completions);
     const today = getToday();
@@ -280,7 +264,7 @@ export function getCurrentStreak(habit: Habit): number {
     return streak;
   }
 
-  if (habit.frequency.kind === "perWeek") {
+  if (habit.frequency.kind === 'perWeek') {
     // A perWeek streak counts consecutive rolling-7-day windows (ending today,
     // then today-7, today-14…) where completions ≥ target.
     const target = habit.frequency.daysPerWeek;
@@ -326,7 +310,7 @@ export function getCurrentStreak(habit: Habit): number {
 export function getLongestStreak(habit: Habit): number {
   if (habit.completions.length === 0) return 0;
 
-  if (habit.frequency.kind === "weekdays") {
+  if (habit.frequency.kind === 'weekdays') {
     if (habit.frequency.weekdays.length === 0) return 0;
     const completionSet = new Set(habit.completions);
     const today = getToday();
@@ -338,11 +322,7 @@ export function getLongestStreak(habit: Habit): number {
     let cur = habit.createdAt;
     // Advance to first due-day if createdAt isn't one.
     let guard = 0;
-    while (
-      cur <= today &&
-      !set.has(parseDate(cur).getDay()) &&
-      guard < 7
-    ) {
+    while (cur <= today && !set.has(parseDate(cur).getDay()) && guard < 7) {
       cur = addDays(cur, 1);
       guard++;
     }
@@ -363,7 +343,7 @@ export function getLongestStreak(habit: Habit): number {
     return longest;
   }
 
-  if (habit.frequency.kind === "perWeek") {
+  if (habit.frequency.kind === 'perWeek') {
     // Step through anchored, non-overlapping 7-day windows walking backwards
     // from today and track the longest run of windows that hit the target.
     const target = habit.frequency.daysPerWeek;
@@ -409,7 +389,7 @@ export function getCompletionRate(habit: Habit): number {
   if (totalDays === 0) return 0;
   const uniqueCompletions = new Set(habit.completions).size;
 
-  if (habit.frequency.kind === "perWeek") {
+  if (habit.frequency.kind === 'perWeek') {
     // Expected = (weeks since created) * daysPerWeek, with a minimum of
     // daysPerWeek so a brand-new habit isn't auto-100%.
     const weeks = Math.max(1, totalDays / 7);
@@ -417,7 +397,7 @@ export function getCompletionRate(habit: Habit): number {
     return Math.min(uniqueCompletions / expected, 1);
   }
 
-  if (habit.frequency.kind === "weekdays") {
+  if (habit.frequency.kind === 'weekdays') {
     if (habit.frequency.weekdays.length === 0) return 0;
     const set = new Set(habit.frequency.weekdays);
     let expected = 0;
@@ -429,10 +409,7 @@ export function getCompletionRate(habit: Habit): number {
     return Math.min(uniqueCompletions / Math.max(expected, 1), 1);
   }
 
-  const expectedCompletions = Math.max(
-    1,
-    Math.ceil(totalDays / habit.frequency.days)
-  );
+  const expectedCompletions = Math.max(1, Math.ceil(totalDays / habit.frequency.days));
   return Math.min(uniqueCompletions / expectedCompletions, 1);
 }
 
@@ -475,17 +452,13 @@ export function getIsoWeekStart(dateStr: string): string {
  * - weekdays: count of selected weekday occurrences in the range.
  * - perWeek:  weeks-in-range * daysPerWeek (target slot count).
  */
-export function getDueDayCount(
-  habit: Habit,
-  fromStr: string,
-  toStr: string
-): number {
+export function getDueDayCount(habit: Habit, fromStr: string, toStr: string): number {
   if (toStr < fromStr) return 0;
   const spanDays = getDaysBetween(fromStr, toStr); // inclusive end → +1 below
-  if (habit.frequency.kind === "interval") {
+  if (habit.frequency.kind === 'interval') {
     return Math.floor(spanDays / habit.frequency.days) + 1;
   }
-  if (habit.frequency.kind === "weekdays") {
+  if (habit.frequency.kind === 'weekdays') {
     const set = new Set(habit.frequency.weekdays);
     let count = 0;
     let cur = fromStr;
@@ -502,11 +475,7 @@ export function getDueDayCount(
 }
 
 /** Number of completions a habit recorded in `[fromStr, toStr]` inclusive. */
-export function getCompletionsInRange(
-  habit: Habit,
-  fromStr: string,
-  toStr: string
-): number {
+export function getCompletionsInRange(habit: Habit, fromStr: string, toStr: string): number {
   if (toStr < fromStr) return 0;
   let n = 0;
   for (const d of habit.completions) {
@@ -534,7 +503,7 @@ export interface FrequencySlot {
   /** Inclusive end date of this due window (YYYY-MM-DD) */
   end: string;
   /** "completed" if any completion fell in [start, end]; "missed" otherwise. Future slots are "future". */
-  status: "completed" | "missed" | "future";
+  status: 'completed' | 'missed' | 'future';
 }
 
 /**
@@ -554,14 +523,14 @@ export interface FrequencySlot {
 export function getFrequencySlotsFromStart(
   habit: Habit,
   maxSlots: number,
-  anchorDate?: string
+  anchorDate?: string,
 ): FrequencySlot[] {
   const todayStr = getToday();
   const completionSet = new Set(habit.completions);
   const slots: FrequencySlot[] = [];
   const anchor = anchorDate ?? habit.createdAt;
 
-  if (habit.frequency.kind === "perWeek") {
+  if (habit.frequency.kind === 'perWeek') {
     const target = habit.frequency.daysPerWeek;
     for (let i = 0; i < maxSlots; i++) {
       const start = addDays(anchor, i * 7);
@@ -572,15 +541,15 @@ export function getFrequencySlotsFromStart(
         if (completionSet.has(addDays(start, d))) count++;
       }
 
-      let status: FrequencySlot["status"];
+      let status: FrequencySlot['status'];
       if (start > todayStr) {
-        status = "future";
+        status = 'future';
       } else if (count >= target) {
-        status = "completed";
+        status = 'completed';
       } else {
         // For windows still in progress (today is inside [start, end]) we
         // treat partial as "future" so it doesn't read as a hard miss yet.
-        status = end > todayStr ? "future" : "missed";
+        status = end > todayStr ? 'future' : 'missed';
       }
 
       slots.push({ start, end, status });
@@ -588,7 +557,7 @@ export function getFrequencySlotsFromStart(
     return slots;
   }
 
-  if (habit.frequency.kind === "weekdays") {
+  if (habit.frequency.kind === 'weekdays') {
     if (habit.frequency.weekdays.length === 0) return slots;
     const set = new Set(habit.frequency.weekdays);
     // Walk forward from anchor day-by-day, emitting one slot per due day.
@@ -603,11 +572,12 @@ export function getFrequencySlotsFromStart(
       const start = cur;
       const end = cur;
       const completed = completionSet.has(start);
-      let status: FrequencySlot["status"];
-      if (completed) status = "completed";
-      else if (start > todayStr) status = "future";
-      else if (start === todayStr) status = "future"; // today still in progress
-      else status = "missed";
+      let status: FrequencySlot['status'];
+      if (completed) status = 'completed';
+      else if (start > todayStr) status = 'future';
+      else if (start === todayStr)
+        status = 'future'; // today still in progress
+      else status = 'missed';
       slots.push({ start, end, status });
       const next = nextDueAfter(habit, cur);
       if (!next) break;
@@ -629,16 +599,16 @@ export function getFrequencySlotsFromStart(
       }
     }
 
-    let status: FrequencySlot["status"];
+    let status: FrequencySlot['status'];
     if (completed) {
-      status = "completed";
+      status = 'completed';
     } else if (start > todayStr) {
-      status = "future";
+      status = 'future';
     } else if (end >= todayStr) {
       // Slot's window still includes today — not a hard miss yet.
-      status = "future";
+      status = 'future';
     } else {
-      status = "missed";
+      status = 'missed';
     }
 
     slots.push({ start, end, status });
@@ -653,15 +623,12 @@ export function getFrequencySlotsFromStart(
  * interval cadences each slot is `days` long; for per-week each slot is 7
  * days.
  */
-export function getFrequencySlots(
-  habit: Habit,
-  slotsBack: number
-): FrequencySlot[] {
+export function getFrequencySlots(habit: Habit, slotsBack: number): FrequencySlot[] {
   const todayStr = getToday();
   const completionSet = new Set(habit.completions);
   const daysSinceCreated = getDaysBetween(habit.createdAt, todayStr);
 
-  if (habit.frequency.kind === "perWeek") {
+  if (habit.frequency.kind === 'perWeek') {
     const target = habit.frequency.daysPerWeek;
     const currentSlotIndex = Math.floor(daysSinceCreated / 7);
     const startSlotIndex = Math.max(0, currentSlotIndex - slotsBack + 1);
@@ -676,13 +643,13 @@ export function getFrequencySlots(
         if (completionSet.has(addDays(start, d))) count++;
       }
 
-      let status: FrequencySlot["status"];
+      let status: FrequencySlot['status'];
       if (start > todayStr) {
-        status = "future";
+        status = 'future';
       } else if (count >= target) {
-        status = "completed";
+        status = 'completed';
       } else {
-        status = end > todayStr ? "future" : "missed";
+        status = end > todayStr ? 'future' : 'missed';
       }
 
       slots.push({ start, end, status });
@@ -690,7 +657,7 @@ export function getFrequencySlots(
     return slots;
   }
 
-  if (habit.frequency.kind === "weekdays") {
+  if (habit.frequency.kind === 'weekdays') {
     const slots: FrequencySlot[] = [];
     if (habit.frequency.weekdays.length === 0) return slots;
     const set = new Set(habit.frequency.weekdays);
@@ -706,10 +673,10 @@ export function getFrequencySlots(
     const tail = dueDays.slice(Math.max(0, dueDays.length - slotsBack));
     for (const start of tail) {
       const completed = completionSet.has(start);
-      let status: FrequencySlot["status"];
-      if (completed) status = "completed";
-      else if (start === todayStr) status = "future";
-      else status = "missed";
+      let status: FrequencySlot['status'];
+      if (completed) status = 'completed';
+      else if (start === todayStr) status = 'future';
+      else status = 'missed';
       slots.push({ start, end: start, status });
     }
     return slots;
@@ -732,16 +699,16 @@ export function getFrequencySlots(
       }
     }
 
-    let status: FrequencySlot["status"];
+    let status: FrequencySlot['status'];
     if (completed) {
-      status = "completed";
+      status = 'completed';
     } else if (start > todayStr) {
-      status = "future";
+      status = 'future';
     } else if (end >= todayStr) {
       // Slot's window still includes today — not a hard miss yet.
-      status = "future";
+      status = 'future';
     } else {
-      status = "missed";
+      status = 'missed';
     }
 
     slots.push({ start, end, status });
@@ -764,7 +731,7 @@ export function getLastNDays(n: number): string[] {
 
 /** Gets the day-of-week label for a date (S, M, T, W, T, F, S) */
 export function getDayOfWeekLabel(dateStr: string): string {
-  const days = ["S", "M", "T", "W", "T", "F", "S"];
+  const days = ['S', 'M', 'T', 'W', 'T', 'F', 'S'];
   const date = parseDate(dateStr);
   return days[date.getDay()];
 }
@@ -772,10 +739,10 @@ export function getDayOfWeekLabel(dateStr: string): string {
 /** Formats a date string for display, e.g., "Monday, April 14" */
 export function formatDisplayDate(dateStr: string): string {
   const date = parseDate(dateStr);
-  return date.toLocaleDateString("en-US", {
-    weekday: "long",
-    month: "long",
-    day: "numeric",
+  return date.toLocaleDateString('en-US', {
+    weekday: 'long',
+    month: 'long',
+    day: 'numeric',
   });
 }
 
@@ -795,10 +762,7 @@ export interface MonthlyStats {
 }
 
 /** Returns monthly stats for a habit, going back `monthsBack` months from today */
-export function getMonthlyStats(
-  habit: Habit,
-  monthsBack: number = 6
-): MonthlyStats[] {
+export function getMonthlyStats(habit: Habit, monthsBack: number = 6): MonthlyStats[] {
   const today = new Date();
   const todayStr = getToday();
   const results: MonthlyStats[] = [];
@@ -808,20 +772,17 @@ export function getMonthlyStats(
     const year = targetDate.getFullYear();
     const month = targetDate.getMonth(); // 0-indexed
 
-    const monthStr = `${year}-${String(month + 1).padStart(2, "0")}`;
-    const label = targetDate.toLocaleDateString("en-US", {
-      month: "long",
-      year: "numeric",
+    const monthStr = `${year}-${String(month + 1).padStart(2, '0')}`;
+    const label = targetDate.toLocaleDateString('en-US', {
+      month: 'long',
+      year: 'numeric',
     });
 
     // Determine the range of days to check in this month
     const daysInMonth = new Date(year, month + 1, 0).getDate();
     const firstDay = formatDate(new Date(year, month, 1));
     const lastDayDate = new Date(year, month, daysInMonth);
-    const lastDay =
-      formatDate(lastDayDate) > todayStr
-        ? todayStr
-        : formatDate(lastDayDate);
+    const lastDay = formatDate(lastDayDate) > todayStr ? todayStr : formatDate(lastDayDate);
 
     // Skip months entirely before the habit was created
     if (lastDay < habit.createdAt) continue;
@@ -835,41 +796,27 @@ export function getMonthlyStats(
     const startDate = parseDate(startDay);
     const endDate = parseDate(lastDay);
 
-    for (
-      let d = new Date(startDate);
-      d <= endDate;
-      d.setDate(d.getDate() + 1)
-    ) {
+    for (let d = new Date(startDate); d <= endDate; d.setDate(d.getDate() + 1)) {
       const dateStr = formatDate(d);
       totalDays++;
       const status = getDayStatus(habit, dateStr);
-      if (status === "completed") completed++;
-      else if (status === "missed_twice") missedTwice++;
+      if (status === 'completed') completed++;
+      else if (status === 'missed_twice') missedTwice++;
     }
 
     let expectedCompletions: number;
-    if (habit.frequency.kind === "perWeek") {
+    if (habit.frequency.kind === 'perWeek') {
       const weeks = Math.max(1, totalDays / 7);
-      expectedCompletions = Math.max(
-        1,
-        Math.ceil(weeks * habit.frequency.daysPerWeek)
-      );
-    } else if (habit.frequency.kind === "weekdays") {
+      expectedCompletions = Math.max(1, Math.ceil(weeks * habit.frequency.daysPerWeek));
+    } else if (habit.frequency.kind === 'weekdays') {
       const set = new Set(habit.frequency.weekdays);
       let dueCount = 0;
-      for (
-        let d = new Date(startDate);
-        d <= endDate;
-        d.setDate(d.getDate() + 1)
-      ) {
+      for (let d = new Date(startDate); d <= endDate; d.setDate(d.getDate() + 1)) {
         if (set.has(d.getDay())) dueCount++;
       }
       expectedCompletions = Math.max(1, dueCount);
     } else {
-      expectedCompletions = Math.max(
-        1,
-        Math.ceil(totalDays / habit.frequency.days)
-      );
+      expectedCompletions = Math.max(1, Math.ceil(totalDays / habit.frequency.days));
     }
 
     results.push({
@@ -900,42 +847,42 @@ export function getMonthlyStats(
  */
 export function getDayStatus(
   habit: Habit,
-  dateStr: string
-): "completed" | "missed_twice" | "empty" {
+  dateStr: string,
+): 'completed' | 'missed_twice' | 'empty' {
   const createdDate = habit.createdAt;
-  if (dateStr < createdDate) return "empty";
+  if (dateStr < createdDate) return 'empty';
 
-  if (habit.completions.includes(dateStr)) return "completed";
+  if (habit.completions.includes(dateStr)) return 'completed';
 
-  if (habit.frequency.kind === "weekdays") {
-    if (habit.frequency.weekdays.length === 0) return "empty";
+  if (habit.frequency.kind === 'weekdays') {
+    if (habit.frequency.weekdays.length === 0) return 'empty';
     // Non-due day — nothing to mark.
-    if (!isDueOnWeekday(habit, dateStr)) return "empty";
+    if (!isDueOnWeekday(habit, dateStr)) return 'empty';
     // Due day not completed. Mark "missed_twice" only when the previous due
     // day was also missed AND the day before *that* was completed (or before
     // createdAt) — keeps one mark per locked-in event.
     const prevDue = prevDueBefore(habit, dateStr);
-    if (prevDue === null || prevDue < createdDate) return "empty";
-    if (habit.completions.includes(prevDue)) return "empty";
+    if (prevDue === null || prevDue < createdDate) return 'empty';
+    if (habit.completions.includes(prevDue)) return 'empty';
     // Both this due day and the previous due day are missed.
     const prevPrevDue = prevDueBefore(habit, prevDue);
     if (prevPrevDue !== null && prevPrevDue >= createdDate) {
       // If the day-before-previous was *also* missed, the missed-twice
       // flag was already raised on the previous due day — don't double-mark.
-      if (!habit.completions.includes(prevPrevDue)) return "empty";
+      if (!habit.completions.includes(prevPrevDue)) return 'empty';
     }
-    return "missed_twice";
+    return 'missed_twice';
   }
 
-  if (habit.frequency.kind === "perWeek") {
+  if (habit.frequency.kind === 'perWeek') {
     const target = habit.frequency.daysPerWeek;
     // Need at least 7 days of history to evaluate a "missed twice" event.
     const daysSinceCreated = getDaysBetween(createdDate, dateStr);
-    if (daysSinceCreated < 7) return "empty";
+    if (daysSinceCreated < 7) return 'empty';
 
     const doneToday = countCompletionsInRollingWeek(habit, dateStr);
     const prevDay = addDays(dateStr, -1);
-    if (prevDay < createdDate) return "empty";
+    if (prevDay < createdDate) return 'empty';
     const donePrev = countCompletionsInRollingWeek(habit, prevDay);
 
     // Locked-in miss: yesterday's window already short, and even completing
@@ -944,18 +891,18 @@ export function getDayStatus(
       // Only mark the first day this becomes true — i.e. the day before
       // wasn't already missed_twice.
       const dayBefore = addDays(prevDay, -1);
-      if (dayBefore < createdDate) return "missed_twice";
+      if (dayBefore < createdDate) return 'missed_twice';
       const doneDayBefore = countCompletionsInRollingWeek(habit, dayBefore);
       const donePrevPlusOne = donePrev + 1;
       // If the same condition held the previous day, this isn't a fresh
       // crossing — leave it empty so the calendar shows one mark per event.
       if (doneDayBefore < target && donePrevPlusOne < target) {
-        return "empty";
+        return 'empty';
       }
-      return "missed_twice";
+      return 'missed_twice';
     }
 
-    return "empty";
+    return 'empty';
   }
 
   const f = habit.frequency.days;
@@ -982,12 +929,12 @@ export function getDayStatus(
   if (daysFromAnchor === f * 2) {
     if (nextCompletion) {
       const anchorToNext = getDaysBetween(anchor, nextCompletion);
-      if (anchorToNext < f * 2) return "empty";
+      if (anchorToNext < f * 2) return 'empty';
     }
-    return "missed_twice";
+    return 'missed_twice';
   }
 
-  return "empty";
+  return 'empty';
 }
 
 /**
@@ -1026,17 +973,17 @@ export function getDayStatus(
  */
 export function getStripDayStatus(
   habit: Habit,
-  dateStr: string
-): "completed" | "completed_filler" | "missed_once" | "missed_twice" | "empty" {
-  if (habit.completions.length === 0) return "empty";
+  dateStr: string,
+): 'completed' | 'completed_filler' | 'missed_once' | 'missed_twice' | 'empty' {
+  if (habit.completions.length === 0) return 'empty';
   const sortedCompletions = [...habit.completions].sort();
   const firstCompletion = sortedCompletions[0];
-  if (dateStr < firstCompletion) return "empty";
-  if (habit.completions.includes(dateStr)) return "completed";
+  if (dateStr < firstCompletion) return 'empty';
+  if (habit.completions.includes(dateStr)) return 'completed';
 
   const todayStr = getToday();
 
-  if (habit.frequency.kind === "interval") {
+  if (habit.frequency.kind === 'interval') {
     const f = habit.frequency.days;
     // Find the most recent completion on or before this day. That's the
     // anchor for cadence-slot counting.
@@ -1047,14 +994,14 @@ export function getStripDayStatus(
     }
     const anchor = prevCompletion ?? firstCompletion;
     const daysFromAnchor = getDaysBetween(anchor, dateStr);
-    if (daysFromAnchor <= f) return "empty"; // inside the cadence window
+    if (daysFromAnchor <= f) return 'empty'; // inside the cadence window
     // First day past the window → missed_once (the warning bar). Every
     // day after that without a completion → missed_twice.
-    if (daysFromAnchor === f + 1) return "missed_once";
-    return "missed_twice";
+    if (daysFromAnchor === f + 1) return 'missed_once';
+    return 'missed_twice';
   }
 
-  if (habit.frequency.kind === "perWeek") {
+  if (habit.frequency.kind === 'perWeek') {
     const target = habit.frequency.daysPerWeek;
     // Mon–Sun calendar weeks. JS getDay(): 0=Sun, 1=Mon … 6=Sat.
     const date = parseDate(dateStr);
@@ -1093,17 +1040,17 @@ export function getStripDayStatus(
         dateStr > firstInWeek &&
         dateStr < lastInWeek
       ) {
-        return "completed_filler";
+        return 'completed_filler';
       }
-      return "empty";
+      return 'empty';
     }
 
     // Past week. The shortfall (if any) is recorded as a single cell on
     // the Sunday of the week. Every other uncompleted day stays empty so
     // the strip doesn't smear red across whole weeks.
-    if (dateStr !== weekEnd) return "empty";
+    if (dateStr !== weekEnd) return 'empty';
     const countThisWeek = countCompletionsInWeek(weekStart);
-    if (countThisWeek >= target) return "empty";
+    if (countThisWeek >= target) return 'empty';
 
     // Walk previous Mon–Sun weeks back to (but not before) the week
     // containing the first completion, counting consecutive shortfall
@@ -1118,14 +1065,14 @@ export function getStripDayStatus(
       if (consecutiveShortfalls >= 2) break;
       cursorWeekStart = addDays(cursorWeekStart, -7);
     }
-    return consecutiveShortfalls >= 2 ? "missed_twice" : "missed_once";
+    return consecutiveShortfalls >= 2 ? 'missed_twice' : 'missed_once';
   }
 
   // Weekdays cadence.
-  if (habit.frequency.weekdays.length === 0) return "empty";
+  if (habit.frequency.weekdays.length === 0) return 'empty';
   const weekdaySet = new Set(habit.frequency.weekdays);
   const dow = parseDate(dateStr).getDay();
-  if (!weekdaySet.has(dow)) return "empty";
+  if (!weekdaySet.has(dow)) return 'empty';
   // dateStr is a selected weekday and not completed. Walk back to the
   // previous selected weekday. If that day was also missed (and falls
   // on or after the first completion), this day is missed_twice.
@@ -1134,11 +1081,11 @@ export function getStripDayStatus(
   let cursor = addDays(dateStr, -1);
   for (let i = 0; i < 7; i++) {
     if (weekdaySet.has(parseDate(cursor).getDay())) {
-      if (cursor < firstCompletion) return "missed_once";
-      if (!habit.completions.includes(cursor)) return "missed_twice";
-      return "missed_once";
+      if (cursor < firstCompletion) return 'missed_once';
+      if (!habit.completions.includes(cursor)) return 'missed_twice';
+      return 'missed_once';
     }
     cursor = addDays(cursor, -1);
   }
-  return "missed_once";
+  return 'missed_once';
 }

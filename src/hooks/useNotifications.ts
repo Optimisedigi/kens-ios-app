@@ -1,12 +1,9 @@
-import { useCallback, useEffect, useRef, useState } from "react";
-import * as Notifications from "expo-notifications";
-import * as Device from "expo-device";
-import { Habit, NotificationSettings, getFrequencyLabel } from "../types/habit";
-import {
-  loadNotificationSettings,
-  saveNotificationSettings,
-} from "../storage/habitStorage";
-import { getToday, parseDate, addDays } from "../utils/dateUtils";
+import { useCallback, useEffect, useRef, useState } from 'react';
+import * as Notifications from 'expo-notifications';
+import * as Device from 'expo-device';
+import { Habit, NotificationSettings, getFrequencyLabel } from '../types/habit';
+import { loadNotificationSettings, saveNotificationSettings } from '../storage/habitStorage';
+import { getToday, parseDate, addDays } from '../utils/dateUtils';
 
 // Configure how notifications are shown when app is in foreground
 Notifications.setNotificationHandler({
@@ -20,19 +17,18 @@ Notifications.setNotificationHandler({
 
 /** Build the notification body line for a habit */
 function buildBody(habit: Habit): string {
-  if (habit.frequency.kind === "perWeek") {
+  if (habit.frequency.kind === 'perWeek') {
     const target = habit.frequency.daysPerWeek;
-    const label = target === 1 ? "1 day this week" : `${target} days this week`;
+    const label = target === 1 ? '1 day this week' : `${target} days this week`;
     return `${habit.emoji} ${habit.name} — aim for ${label}, don't break the chain!`;
   }
-  if (habit.frequency.kind === "weekdays") {
+  if (habit.frequency.kind === 'weekdays') {
     return `${habit.emoji} ${habit.name} — today's a ${getFrequencyLabel(
-      habit.frequency
+      habit.frequency,
     ).toLowerCase()} day, don't break the chain!`;
   }
   const f = habit.frequency.days;
-  const freqLabel =
-    f === 1 ? "today" : f === 7 ? "this week" : `every ${f} days`;
+  const freqLabel = f === 1 ? 'today' : f === 7 ? 'this week' : `every ${f} days`;
   return `${habit.emoji} ${habit.name} is due ${freqLabel} — don't break the chain!`;
 }
 
@@ -44,7 +40,7 @@ function getNextIntervalDueDate(
   habit: Habit,
   intervalDays: number,
   hour: number,
-  minute: number
+  minute: number,
 ): Date {
   const todayStr = getToday();
   const f = intervalDays;
@@ -53,7 +49,7 @@ function getNextIntervalDueDate(
   // Find the next due day on or after today, aligned to createdAt
   const todayDate = parseDate(todayStr);
   const daysSinceCreated = Math.round(
-    (todayDate.getTime() - created.getTime()) / (1000 * 60 * 60 * 24)
+    (todayDate.getTime() - created.getTime()) / (1000 * 60 * 60 * 24),
   );
   const daysIntoCycle = ((daysSinceCreated % f) + f) % f;
   const daysUntilNextSlot = daysIntoCycle === 0 ? 0 : f - daysIntoCycle;
@@ -61,10 +57,7 @@ function getNextIntervalDueDate(
   let dueStr = addDays(todayStr, daysUntilNextSlot);
 
   // If today is the due day but the user already completed it, jump to next cycle
-  if (
-    daysUntilNextSlot === 0 &&
-    habit.completions.includes(dueStr)
-  ) {
+  if (daysUntilNextSlot === 0 && habit.completions.includes(dueStr)) {
     dueStr = addDays(dueStr, f);
   }
 
@@ -106,20 +99,19 @@ export function useNotifications() {
   // Request permissions
   const requestPermissions = useCallback(async (): Promise<boolean> => {
     if (!Device.isDevice) {
-      console.log("Notifications only work on physical devices");
+      console.log('Notifications only work on physical devices');
       return false;
     }
 
-    const { status: existingStatus } =
-      await Notifications.getPermissionsAsync();
+    const { status: existingStatus } = await Notifications.getPermissionsAsync();
     let finalStatus = existingStatus;
 
-    if (existingStatus !== "granted") {
+    if (existingStatus !== 'granted') {
       const { status } = await Notifications.requestPermissionsAsync();
       finalStatus = status;
     }
 
-    const granted = finalStatus === "granted";
+    const granted = finalStatus === 'granted';
     setPermissionGranted(granted);
     return granted;
   }, []);
@@ -127,7 +119,7 @@ export function useNotifications() {
   // Check permissions on mount
   useEffect(() => {
     Notifications.getPermissionsAsync().then(({ status }) => {
-      setPermissionGranted(status === "granted");
+      setPermissionGranted(status === 'granted');
     });
   }, []);
 
@@ -167,10 +159,7 @@ export function useNotifications() {
       for (const habit of habits) {
         if (isStale()) return;
         // Skip habits the user has explicitly opted out of reminders for.
-        if (
-          habit.reminderHour === null ||
-          habit.reminderMinute === null
-        ) {
+        if (habit.reminderHour === null || habit.reminderMinute === null) {
           continue;
         }
         const title = `Time for ${habit.name}`;
@@ -180,7 +169,7 @@ export function useNotifications() {
         const minute = habit.reminderMinute;
 
         try {
-          if (habit.frequency.kind === "weekdays") {
+          if (habit.frequency.kind === 'weekdays') {
             // Schedule one weekly repeating reminder per selected weekday.
             // expo-notifications weekday: 1=Sunday … 7=Saturday, so add 1.
             for (const dow of habit.frequency.weekdays) {
@@ -198,7 +187,7 @@ export function useNotifications() {
             continue;
           }
 
-          if (habit.frequency.kind === "perWeek") {
+          if (habit.frequency.kind === 'perWeek') {
             // Skip if already on track this rolling week.
             const done = completionsThisRollingWeek(habit);
             if (done >= habit.frequency.daysPerWeek) continue;
@@ -250,14 +239,11 @@ export function useNotifications() {
             });
           }
         } catch (err) {
-          console.error(
-            `Failed to schedule notification for habit "${habit.name}":`,
-            err
-          );
+          console.error(`Failed to schedule notification for habit "${habit.name}":`, err);
         }
       }
     },
-    [settings, permissionGranted]
+    [settings, permissionGranted],
   );
 
   // Update notification settings
@@ -267,7 +253,7 @@ export function useNotifications() {
       setSettings(updated);
       await saveNotificationSettings(updated);
     },
-    [settings]
+    [settings],
   );
 
   // Toggle notifications on/off

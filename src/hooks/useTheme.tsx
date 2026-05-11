@@ -1,20 +1,8 @@
-import React, {
-  createContext,
-  useCallback,
-  useContext,
-  useEffect,
-  useMemo,
-  useState,
-} from "react";
-import AsyncStorage from "@react-native-async-storage/async-storage";
-import {
-  darkColors,
-  lightColors,
-  ThemeColors,
-  ThemeName,
-} from "../constants/colors";
+import React, { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { darkColors, lightColors, ThemeColors, ThemeName } from '../constants/colors';
 
-const THEME_KEY = "@nmt/theme";
+const THEME_KEY = '@nmt/theme';
 
 interface ThemeContextValue {
   /** Active palette — read-only, components consume `colors.x` for styling. */
@@ -29,7 +17,7 @@ interface ThemeContextValue {
 
 const defaultValue: ThemeContextValue = {
   colors: darkColors,
-  themeName: "dark",
+  themeName: 'dark',
   setTheme: () => {},
   toggleTheme: () => {},
 };
@@ -42,14 +30,14 @@ const ThemeContext = createContext<ThemeContextValue>(defaultValue);
  * is stored. Persists every change.
  */
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
-  const [themeName, setThemeName] = useState<ThemeName>("dark");
+  const [themeName, setThemeName] = useState<ThemeName>('dark');
 
   useEffect(() => {
     let cancelled = false;
     (async () => {
       try {
         const saved = await AsyncStorage.getItem(THEME_KEY);
-        if (!cancelled && (saved === "light" || saved === "dark")) {
+        if (!cancelled && (saved === 'light' || saved === 'dark')) {
           setThemeName(saved);
         }
       } catch {
@@ -70,7 +58,7 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
 
   const toggleTheme = useCallback(() => {
     setThemeName((prev) => {
-      const next: ThemeName = prev === "dark" ? "light" : "dark";
+      const next: ThemeName = prev === 'dark' ? 'light' : 'dark';
       AsyncStorage.setItem(THEME_KEY, next).catch(() => {});
       return next;
     });
@@ -78,17 +66,15 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
 
   const value = useMemo<ThemeContextValue>(
     () => ({
-      colors: themeName === "dark" ? darkColors : lightColors,
+      colors: themeName === 'dark' ? darkColors : lightColors,
       themeName,
       setTheme,
       toggleTheme,
     }),
-    [themeName, setTheme, toggleTheme]
+    [themeName, setTheme, toggleTheme],
   );
 
-  return (
-    <ThemeContext.Provider value={value}>{children}</ThemeContext.Provider>
-  );
+  return <ThemeContext.Provider value={value}>{children}</ThemeContext.Provider>;
 }
 
 /** Read the active palette + theme controls anywhere inside ThemeProvider. */

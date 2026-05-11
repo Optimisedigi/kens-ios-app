@@ -1,16 +1,8 @@
-import React, { useMemo, useState } from "react";
-import {
-  View,
-  Text,
-  StyleSheet,
-  Pressable,
-  Modal,
-  Switch,
-  Platform,
-} from "react-native";
-import * as Haptics from "expo-haptics";
-import DateTimePicker from "@react-native-community/datetimepicker";
-import { useTheme } from "../hooks/useTheme";
+import React, { useMemo, useState } from 'react';
+import { View, Text, StyleSheet, Pressable, Modal, Switch, Platform } from 'react-native';
+import * as Haptics from 'expo-haptics';
+import DateTimePicker from '@react-native-community/datetimepicker';
+import { useTheme } from '../hooks/useTheme';
 
 interface TimePickerProps {
   /** null = no reminder for this habit */
@@ -22,12 +14,12 @@ interface TimePickerProps {
 }
 
 function pad(n: number): string {
-  return n.toString().padStart(2, "0");
+  return n.toString().padStart(2, '0');
 }
 
 /** Format a (h, m) tuple as "h:mm AM/PM". */
 export function formatTime(hour: number, minute: number): string {
-  const period = hour >= 12 ? "PM" : "AM";
+  const period = hour >= 12 ? 'PM' : 'AM';
   const display = hour % 12 || 12;
   return `${display}:${pad(minute)} ${period}`;
 }
@@ -38,8 +30,8 @@ export function TimePicker({ hour, minute, onChange }: TimePickerProps) {
     () =>
       StyleSheet.create({
         row: {
-          flexDirection: "row",
-          alignItems: "center",
+          flexDirection: 'row',
+          alignItems: 'center',
           gap: 12,
           marginBottom: 16,
         },
@@ -51,7 +43,7 @@ export function TimePicker({ hour, minute, onChange }: TimePickerProps) {
           borderRadius: 10,
           paddingHorizontal: 14,
           paddingVertical: 10,
-          alignItems: "center",
+          alignItems: 'center',
         },
         timeButtonDisabled: {
           opacity: 0.6,
@@ -59,17 +51,17 @@ export function TimePicker({ hour, minute, onChange }: TimePickerProps) {
         timeText: {
           color: colors.textPrimary,
           fontSize: 17,
-          fontWeight: "600",
+          fontWeight: '600',
         },
         timeTextDisabled: {
           color: colors.textMuted,
-          fontWeight: "500",
+          fontWeight: '500',
         },
         backdrop: {
           flex: 1,
-          backgroundColor: "rgba(0,0,0,0.55)",
-          justifyContent: "center",
-          alignItems: "center",
+          backgroundColor: 'rgba(0,0,0,0.55)',
+          justifyContent: 'center',
+          alignItems: 'center',
           paddingHorizontal: 20,
         },
         sheet: {
@@ -78,24 +70,24 @@ export function TimePicker({ hour, minute, onChange }: TimePickerProps) {
           padding: 16,
           borderWidth: 1,
           borderColor: colors.cardBorder,
-          width: "100%",
+          width: '100%',
           maxWidth: 360,
         },
         sheetTitle: {
           color: colors.textPrimary,
           fontSize: 16,
-          fontWeight: "600",
-          textAlign: "center",
+          fontWeight: '600',
+          textAlign: 'center',
           marginBottom: 8,
         },
         spinnerWrap: {
-          alignItems: "center",
-          justifyContent: "center",
+          alignItems: 'center',
+          justifyContent: 'center',
           marginBottom: 8,
         },
         actions: {
-          flexDirection: "row",
-          justifyContent: "flex-end",
+          flexDirection: 'row',
+          justifyContent: 'flex-end',
           gap: 8,
         },
         btn: {
@@ -109,7 +101,7 @@ export function TimePicker({ hour, minute, onChange }: TimePickerProps) {
         btnGhostText: {
           color: colors.textSecondary,
           fontSize: 14,
-          fontWeight: "600",
+          fontWeight: '600',
         },
         btnPrimary: {
           backgroundColor: colors.accent,
@@ -117,10 +109,10 @@ export function TimePicker({ hour, minute, onChange }: TimePickerProps) {
         btnPrimaryText: {
           color: colors.textPrimary,
           fontSize: 14,
-          fontWeight: "600",
+          fontWeight: '600',
         },
       }),
-    [colors]
+    [colors],
   );
 
   const enabled = hour !== null && minute !== null;
@@ -163,17 +155,10 @@ export function TimePicker({ hour, minute, onChange }: TimePickerProps) {
         onPress={enabled ? openModal : undefined}
         disabled={!enabled}
         style={[styles.timeButton, !enabled && styles.timeButtonDisabled]}
-        accessibilityLabel={
-          enabled ? "Edit reminder time" : "Reminder is off"
-        }
+        accessibilityLabel={enabled ? 'Edit reminder time' : 'Reminder is off'}
       >
-        <Text
-          style={[
-            styles.timeText,
-            !enabled && styles.timeTextDisabled,
-          ]}
-        >
-          {enabled ? formatTime(hour!, minute!) : "Off"}
+        <Text style={[styles.timeText, !enabled && styles.timeTextDisabled]}>
+          {enabled ? formatTime(hour!, minute!) : 'Off'}
         </Text>
       </Pressable>
 
@@ -193,14 +178,8 @@ export function TimePicker({ hour, minute, onChange }: TimePickerProps) {
         animationType="fade"
         onRequestClose={() => setModalOpen(false)}
       >
-        <Pressable
-          style={styles.backdrop}
-          onPress={() => setModalOpen(false)}
-        >
-          <Pressable
-            style={styles.sheet}
-            onPress={(e) => e.stopPropagation()}
-          >
+        <Pressable style={styles.backdrop} onPress={() => setModalOpen(false)}>
+          <Pressable style={styles.sheet} onPress={(e) => e.stopPropagation()}>
             <Text style={styles.sheetTitle}>Reminder time</Text>
 
             <View style={styles.spinnerWrap}>
@@ -208,7 +187,7 @@ export function TimePicker({ hour, minute, onChange }: TimePickerProps) {
                 value={draft}
                 mode="time"
                 // iOS spinner = the slot-machine wheels you wanted.
-                display={Platform.OS === "ios" ? "spinner" : "default"}
+                display={Platform.OS === 'ios' ? 'spinner' : 'default'}
                 themeVariant="dark"
                 textColor={colors.textPrimary}
                 onChange={(_, selected) => {
@@ -218,16 +197,10 @@ export function TimePicker({ hour, minute, onChange }: TimePickerProps) {
             </View>
 
             <View style={styles.actions}>
-              <Pressable
-                onPress={() => setModalOpen(false)}
-                style={[styles.btn, styles.btnGhost]}
-              >
+              <Pressable onPress={() => setModalOpen(false)} style={[styles.btn, styles.btnGhost]}>
                 <Text style={styles.btnGhostText}>Cancel</Text>
               </Pressable>
-              <Pressable
-                onPress={handleDone}
-                style={[styles.btn, styles.btnPrimary]}
-              >
+              <Pressable onPress={handleDone} style={[styles.btn, styles.btnPrimary]}>
                 <Text style={styles.btnPrimaryText}>Done</Text>
               </Pressable>
             </View>

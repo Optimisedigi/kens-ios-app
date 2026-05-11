@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useRef, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import {
   Modal,
   View,
@@ -8,9 +8,9 @@ import {
   Pressable,
   KeyboardAvoidingView,
   Platform,
-} from "react-native";
-import * as Haptics from "expo-haptics";
-import { useTheme } from "../hooks/useTheme";
+} from 'react-native';
+import * as Haptics from 'expo-haptics';
+import { useTheme } from '../hooks/useTheme';
 
 interface EmojiPickerModalProps {
   visible: boolean;
@@ -39,11 +39,11 @@ export function EmojiPickerModal({
       StyleSheet.create({
         backdrop: {
           flex: 1,
-          backgroundColor: "rgba(0,0,0,0.55)",
+          backgroundColor: 'rgba(0,0,0,0.55)',
         },
         center: {
           flex: 1,
-          justifyContent: "center",
+          justifyContent: 'center',
           paddingHorizontal: 20,
         },
         sheet: {
@@ -56,18 +56,18 @@ export function EmojiPickerModal({
         title: {
           color: colors.textPrimary,
           fontSize: 16,
-          fontWeight: "600",
-          textAlign: "center",
+          fontWeight: '600',
+          textAlign: 'center',
           marginBottom: 6,
         },
         helper: {
           color: colors.textMuted,
           fontSize: 12,
-          textAlign: "center",
+          textAlign: 'center',
           marginBottom: 14,
         },
         inputRow: {
-          alignItems: "center",
+          alignItems: 'center',
           marginBottom: 14,
         },
         input: {
@@ -77,14 +77,14 @@ export function EmojiPickerModal({
           backgroundColor: colors.inputBackground,
           borderWidth: 1,
           borderColor: colors.inputBorder,
-          textAlign: "center",
+          textAlign: 'center',
           fontSize: 56,
           color: colors.textPrimary,
           paddingVertical: 0,
         },
         actions: {
-          flexDirection: "row",
-          justifyContent: "flex-end",
+          flexDirection: 'row',
+          justifyContent: 'flex-end',
           gap: 8,
         },
         btn: {
@@ -98,10 +98,10 @@ export function EmojiPickerModal({
         btnGhostText: {
           color: colors.textSecondary,
           fontSize: 14,
-          fontWeight: "600",
+          fontWeight: '600',
         },
       }),
-    [colors]
+    [colors],
   );
 
   const inputRef = useRef<TextInput>(null);
@@ -119,14 +119,14 @@ export function EmojiPickerModal({
 
   const handleChange = (text: string) => {
     if (text.length === 0) {
-      setDraft("");
+      setDraft('');
       return;
     }
     // Take the first grapheme from whatever the user typed. Array.from
     // splits by code point — covers most emojis including surrogate pairs.
     // ZWJ sequences (e.g. 👨‍🌾) collapse to their first base codepoint,
     // which is still a valid emoji and acceptable for a v1.
-    const first = Array.from(text)[0] ?? "";
+    const first = Array.from(text)[0] ?? '';
     if (!first) return;
     setDraft(first);
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
@@ -134,21 +134,13 @@ export function EmojiPickerModal({
   };
 
   return (
-    <Modal
-      visible={visible}
-      transparent
-      animationType="fade"
-      onRequestClose={onClose}
-    >
+    <Modal visible={visible} transparent animationType="fade" onRequestClose={onClose}>
       <Pressable style={styles.backdrop} onPress={onClose}>
         <KeyboardAvoidingView
-          behavior={Platform.OS === "ios" ? "padding" : undefined}
+          behavior={Platform.OS === 'ios' ? 'padding' : undefined}
           style={styles.center}
         >
-          <Pressable
-            style={styles.sheet}
-            onPress={(e) => e.stopPropagation()}
-          >
+          <Pressable style={styles.sheet} onPress={(e) => e.stopPropagation()}>
             <Text style={styles.title}>Pick an emoji</Text>
             <Text style={styles.helper}>
               Tap the 😀 / globe key on your keyboard to switch to emoji.
@@ -166,10 +158,7 @@ export function EmojiPickerModal({
               />
             </View>
             <View style={styles.actions}>
-              <Pressable
-                onPress={onClose}
-                style={[styles.btn, styles.btnGhost]}
-              >
+              <Pressable onPress={onClose} style={[styles.btn, styles.btnGhost]}>
                 <Text style={styles.btnGhostText}>Done</Text>
               </Pressable>
             </View>

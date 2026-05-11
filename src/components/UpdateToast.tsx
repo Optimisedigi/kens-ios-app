@@ -1,8 +1,8 @@
-import React, { useEffect, useMemo, useRef } from "react";
-import { Animated, View, Text, Platform, StyleSheet } from "react-native";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { useTheme } from "../hooks/useTheme";
-import { useAutoUpdate } from "../hooks/useAutoUpdate";
+import React, { useEffect, useMemo, useRef } from 'react';
+import { Animated, View, Text, Platform, StyleSheet } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useTheme } from '../hooks/useTheme';
+import { useAutoUpdate } from '../hooks/useAutoUpdate';
 
 /**
  * Subtle top-of-screen toast that appears once a new EAS Update has been
@@ -15,14 +15,14 @@ export function UpdateToast() {
     () =>
       StyleSheet.create({
         wrapper: {
-          position: "absolute",
+          position: 'absolute',
           left: 16,
           right: 16,
           zIndex: 9999,
         },
         toast: {
-          flexDirection: "row",
-          alignItems: "center",
+          flexDirection: 'row',
+          alignItems: 'center',
           gap: 10,
           backgroundColor: colors.card,
           borderRadius: 14,
@@ -30,7 +30,7 @@ export function UpdateToast() {
           paddingVertical: 11,
           borderWidth: 1,
           borderColor: colors.cardBorder,
-          shadowColor: "#000",
+          shadowColor: '#000',
           shadowOpacity: 0.4,
           shadowRadius: 16,
           shadowOffset: { width: 0, height: 6 },
@@ -41,20 +41,20 @@ export function UpdateToast() {
           height: 26,
           borderRadius: 13,
           backgroundColor: colors.completed,
-          alignItems: "center",
-          justifyContent: "center",
+          alignItems: 'center',
+          justifyContent: 'center',
         },
         iconText: {
           color: colors.background,
           fontSize: 14,
-          fontWeight: "700",
+          fontWeight: '700',
         },
         textCol: {
           flex: 1,
         },
         title: {
           color: colors.textPrimary,
-          fontWeight: "600",
+          fontWeight: '600',
           fontSize: 13,
         },
         subtitle: {
@@ -63,7 +63,7 @@ export function UpdateToast() {
           marginTop: 1,
         },
       }),
-    [colors]
+    [colors],
   );
 
   const { updateReady, applyUpdate } = useAutoUpdate();
@@ -115,7 +115,7 @@ export function UpdateToast() {
       style={[
         styles.wrapper,
         {
-          top: insets.top + (Platform.OS === "ios" ? 6 : 12),
+          top: insets.top + (Platform.OS === 'ios' ? 6 : 12),
           opacity,
           transform: [{ translateY }],
         },
@@ -127,9 +127,7 @@ export function UpdateToast() {
         </View>
         <View style={styles.textCol}>
           <Text style={styles.title}>App updated</Text>
-          <Text style={styles.subtitle}>
-            Refreshing to the latest version…
-          </Text>
+          <Text style={styles.subtitle}>Refreshing to the latest version…</Text>
         </View>
       </View>
     </Animated.View>

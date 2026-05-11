@@ -1,19 +1,13 @@
-import React, { useMemo, useRef, useState } from "react";
-import {
-  Pressable,
-  Text,
-  StyleSheet,
-  Animated,
-  View,
-} from "react-native";
-import * as Haptics from "expo-haptics";
-import AsyncStorage from "@react-native-async-storage/async-storage";
-import { HabitWithStatus, getFrequencyLabel } from "../types/habit";
-import { useTheme } from "../hooks/useTheme";
-import { ThemeColors } from "../constants/colors";
-import { getToday } from "../utils/dateUtils";
-import { NoteEditorModal } from "./NoteEditorModal";
-import { HabitCompletedModal } from "./HabitCompletedModal";
+import React, { useMemo, useRef, useState } from 'react';
+import { Pressable, Text, StyleSheet, Animated, View } from 'react-native';
+import * as Haptics from 'expo-haptics';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { HabitWithStatus, getFrequencyLabel } from '../types/habit';
+import { useTheme } from '../hooks/useTheme';
+import { ThemeColors } from '../constants/colors';
+import { getToday } from '../utils/dateUtils';
+import { NoteEditorModal } from './NoteEditorModal';
+import { HabitCompletedModal } from './HabitCompletedModal';
 
 interface HabitCardProps {
   habit: HabitWithStatus;
@@ -21,20 +15,17 @@ interface HabitCardProps {
   onSaveNote: (id: string, dateStr: string, text: string | null) => void;
 }
 
-function getStatusColor(
-  status: HabitWithStatus["status"],
-  colors: ThemeColors
-): string {
+function getStatusColor(status: HabitWithStatus['status'], colors: ThemeColors): string {
   switch (status) {
-    case "completed_today":
+    case 'completed_today':
       return colors.completed;
-    case "safe":
+    case 'safe':
       return colors.safe;
-    case "warning":
+    case 'warning':
       return colors.warning;
-    case "missed_twice":
+    case 'missed_twice':
       return colors.missed;
-    case "new":
+    case 'new':
       return colors.safe;
     default:
       return colors.cardBorder;
@@ -44,20 +35,20 @@ function getStatusColor(
 function getStatusLabel(habit: HabitWithStatus): string {
   const hasStarted = habit.completions.length > 0;
 
-  if (habit.status === "completed_today") return "Done ✓";
-  if (habit.status === "new") return "Start today!";
+  if (habit.status === 'completed_today') return 'Done ✓';
+  if (habit.status === 'new') return 'Start today!';
 
-  if (!hasStarted) return "Start today!";
+  if (!hasStarted) return 'Start today!';
 
   switch (habit.status) {
-    case "safe":
-      return "On track";
-    case "warning":
+    case 'safe':
+      return 'On track';
+    case 'warning':
       return `Don't miss twice: ${habit.name}!`;
-    case "missed_twice":
-      return "Missed twice — get back on track!";
+    case 'missed_twice':
+      return 'Missed twice — get back on track!';
     default:
-      return "";
+      return '';
   }
 }
 
@@ -67,9 +58,9 @@ export function HabitCard({ habit, onToggle, onSaveNote }: HabitCardProps) {
     () =>
       StyleSheet.create({
         card: {
-          flexDirection: "row",
-          alignItems: "center",
-          justifyContent: "space-between",
+          flexDirection: 'row',
+          alignItems: 'center',
+          justifyContent: 'space-between',
           backgroundColor: colors.card,
           borderRadius: 16,
           padding: 16,
@@ -79,8 +70,8 @@ export function HabitCard({ habit, onToggle, onSaveNote }: HabitCardProps) {
           borderColor: colors.cardBorder,
         },
         leftSection: {
-          flexDirection: "row",
-          alignItems: "center",
+          flexDirection: 'row',
+          alignItems: 'center',
           flex: 1,
         },
         emoji: {
@@ -92,7 +83,7 @@ export function HabitCard({ habit, onToggle, onSaveNote }: HabitCardProps) {
         },
         name: {
           fontSize: 18,
-          fontWeight: "600",
+          fontWeight: '600',
           color: colors.textPrimary,
         },
         nameCompleted: {
@@ -101,7 +92,7 @@ export function HabitCard({ habit, onToggle, onSaveNote }: HabitCardProps) {
         statusLabel: {
           fontSize: 13,
           marginTop: 3,
-          fontWeight: "500",
+          fontWeight: '500',
         },
         frequencyLabel: {
           fontSize: 11,
@@ -110,36 +101,36 @@ export function HabitCard({ habit, onToggle, onSaveNote }: HabitCardProps) {
         },
         rightSection: {
           marginLeft: 12,
-          flexDirection: "row",
-          alignItems: "center",
+          flexDirection: 'row',
+          alignItems: 'center',
           gap: 10,
         },
         noteButton: {
           width: 32,
           height: 32,
           borderRadius: 16,
-          alignItems: "center",
-          justifyContent: "center",
+          alignItems: 'center',
+          justifyContent: 'center',
           borderWidth: 1,
           borderColor: colors.cardBorder,
-          backgroundColor: "transparent",
+          backgroundColor: 'transparent',
         },
         noteButtonGlyph: {
           fontSize: 16,
           color: colors.textMuted,
-          fontWeight: "600",
+          fontWeight: '600',
         },
         checkCircle: {
           width: 32,
           height: 32,
           borderRadius: 16,
-          alignItems: "center",
-          justifyContent: "center",
+          alignItems: 'center',
+          justifyContent: 'center',
         },
         checkMark: {
-          color: "#000",
+          color: '#000',
           fontSize: 18,
-          fontWeight: "bold",
+          fontWeight: 'bold',
         },
         emptyCircle: {
           width: 32,
@@ -149,7 +140,7 @@ export function HabitCard({ habit, onToggle, onSaveNote }: HabitCardProps) {
           borderColor: colors.cardBorder,
         },
       }),
-    [colors]
+    [colors],
   );
 
   const scaleAnim = useRef(new Animated.Value(1)).current;
@@ -174,12 +165,10 @@ export function HabitCard({ habit, onToggle, onSaveNote }: HabitCardProps) {
     ]).start();
 
     // Haptic feedback
-    if (habit.status === "completed_today") {
+    if (habit.status === 'completed_today') {
       await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     } else {
-      await Haptics.notificationAsync(
-        Haptics.NotificationFeedbackType.Success
-      );
+      await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
     }
 
     // Detect "user just turned today on" BEFORE we toggle — if today is the
@@ -193,7 +182,7 @@ export function HabitCard({ habit, onToggle, onSaveNote }: HabitCardProps) {
       const flagKey = `celebrated:${habit.id}:${habit.endDate}`;
       const already = await AsyncStorage.getItem(flagKey);
       if (!already) {
-        await AsyncStorage.setItem(flagKey, "1");
+        await AsyncStorage.setItem(flagKey, '1');
         setCelebrationOpen(true);
       }
     }
@@ -202,7 +191,7 @@ export function HabitCard({ habit, onToggle, onSaveNote }: HabitCardProps) {
   };
 
   const statusColor = getStatusColor(habit.status, colors);
-  const isCompleted = habit.status === "completed_today";
+  const isCompleted = habit.status === 'completed_today';
 
   const openNote = () => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
@@ -218,41 +207,21 @@ export function HabitCard({ habit, onToggle, onSaveNote }: HabitCardProps) {
             styles.card,
             {
               borderLeftColor: statusColor,
-              backgroundColor: isCompleted
-                ? colors.card
-                : colors.card,
+              backgroundColor: isCompleted ? colors.card : colors.card,
             },
           ]}
         >
           <View style={styles.leftSection}>
             <Text style={styles.emoji}>{habit.emoji}</Text>
             <View style={styles.textContainer}>
-              <Text
-                style={[
-                  styles.name,
-                  isCompleted && styles.nameCompleted,
-                ]}
-              >
-                {habit.name}
-              </Text>
-              <Text
-                style={[
-                  styles.statusLabel,
-                  { color: statusColor },
-                ]}
-              >
+              <Text style={[styles.name, isCompleted && styles.nameCompleted]}>{habit.name}</Text>
+              <Text style={[styles.statusLabel, { color: statusColor }]}>
                 {getStatusLabel(habit)}
               </Text>
               {!(
-                (habit.frequency.kind === "interval" &&
-                  habit.frequency.days === 1) ||
-                (habit.frequency.kind === "weekdays" &&
-                  habit.frequency.weekdays.length === 7)
-              ) && (
-                <Text style={styles.frequencyLabel}>
-                  {getFrequencyLabel(habit.frequency)}
-                </Text>
-              )}
+                (habit.frequency.kind === 'interval' && habit.frequency.days === 1) ||
+                (habit.frequency.kind === 'weekdays' && habit.frequency.weekdays.length === 7)
+              ) && <Text style={styles.frequencyLabel}>{getFrequencyLabel(habit.frequency)}</Text>}
             </View>
           </View>
 
@@ -269,27 +238,15 @@ export function HabitCard({ habit, onToggle, onSaveNote }: HabitCardProps) {
                   borderColor: habit.color,
                 },
               ]}
-              accessibilityLabel={
-                hasNoteToday ? "Edit note for today" : "Add note for today"
-              }
+              accessibilityLabel={hasNoteToday ? 'Edit note for today' : 'Add note for today'}
             >
-              <Text
-                style={[
-                  styles.noteButtonGlyph,
-                  hasNoteToday && { color: colors.background },
-                ]}
-              >
+              <Text style={[styles.noteButtonGlyph, hasNoteToday && { color: colors.background }]}>
                 ✎
               </Text>
             </Pressable>
 
             {isCompleted ? (
-              <View
-                style={[
-                  styles.checkCircle,
-                  { backgroundColor: colors.completed },
-                ]}
-              >
+              <View style={[styles.checkCircle, { backgroundColor: colors.completed }]}>
                 <Text style={styles.checkMark}>✓</Text>
               </View>
             ) : (

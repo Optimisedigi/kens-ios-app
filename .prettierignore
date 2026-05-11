@@ -1,0 +1,7 @@
+node_modules
+dist
+.expo
+android
+ios
+kens-ios-app
+package-lock.json

@@ -14,11 +14,13 @@ A habit tracker app built with Expo (React Native). The core philosophy: **you c
 ## Get Started
 
 1. Install dependencies:
+
    ```bash
    npm install
    ```
 
 2. Start the app:
+
    ```bash
    npx expo start
    ```

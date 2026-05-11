@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from "react";
+import React, { useMemo, useState } from 'react';
 import {
   View,
   Text,
@@ -11,29 +11,26 @@ import {
   Keyboard,
   InputAccessoryView,
   Modal,
-} from "react-native";
-import DateTimePicker from "@react-native-community/datetimepicker";
-import { useRouter } from "expo-router";
-import * as Haptics from "expo-haptics";
-import {
-  addHabit,
-  loadNotificationSettings,
-} from "../src/storage/habitStorage";
-import { useTheme } from "../src/hooks/useTheme";
-import { TimePicker } from "../src/components/TimePicker";
-import { EmojiPickerModal } from "../src/components/EmojiPickerModal";
+} from 'react-native';
+import DateTimePicker from '@react-native-community/datetimepicker';
+import { useRouter } from 'expo-router';
+import * as Haptics from 'expo-haptics';
+import { addHabit, loadNotificationSettings } from '../src/storage/habitStorage';
+import { useTheme } from '../src/hooks/useTheme';
+import { TimePicker } from '../src/components/TimePicker';
+import { EmojiPickerModal } from '../src/components/EmojiPickerModal';
 import {
   HabitFrequency,
   INTERVAL_FREQUENCY_OPTIONS,
   PER_WEEK_FREQUENCY_OPTIONS,
   WEEKDAY_LABELS,
   WEEKDAY_FULL,
-} from "../src/types/habit";
-import { addDays, formatDate, getToday, parseDate } from "../src/utils/dateUtils";
+} from '../src/types/habit';
+import { addDays, formatDate, getToday, parseDate } from '../src/utils/dateUtils';
 
-const KEYBOARD_ACCESSORY_ID = "addHabitNameAccessory";
+const KEYBOARD_ACCESSORY_ID = 'addHabitNameAccessory';
 
-type CadenceKind = "interval" | "perWeek" | "weekdays";
+type CadenceKind = 'interval' | 'perWeek' | 'weekdays';
 
 export default function AddHabitScreen() {
   const { colors } = useTheme();
@@ -49,21 +46,21 @@ export default function AddHabitScreen() {
         },
         label: {
           fontSize: 16,
-          fontWeight: "600",
+          fontWeight: '600',
           color: colors.textSecondary,
           marginBottom: 12,
           marginTop: 8,
         },
         subLabel: {
           fontSize: 13,
-          fontWeight: "600",
+          fontWeight: '600',
           color: colors.textMuted,
           marginBottom: 8,
           marginTop: 4,
         },
         nameRow: {
-          flexDirection: "row",
-          alignItems: "stretch",
+          flexDirection: 'row',
+          alignItems: 'stretch',
           gap: 10,
           marginBottom: 24,
         },
@@ -85,14 +82,14 @@ export default function AddHabitScreen() {
           backgroundColor: colors.inputBackground,
           borderWidth: 1,
           borderColor: colors.inputBorder,
-          alignItems: "center",
-          justifyContent: "center",
+          alignItems: 'center',
+          justifyContent: 'center',
         },
         emojiBoxText: {
           fontSize: 28,
         },
         segmentedRow: {
-          flexDirection: "row",
+          flexDirection: 'row',
           backgroundColor: colors.inputBackground,
           borderRadius: 10,
           padding: 4,
@@ -103,26 +100,26 @@ export default function AddHabitScreen() {
           flex: 1,
           paddingVertical: 8,
           borderRadius: 8,
-          alignItems: "center",
+          alignItems: 'center',
         },
         segmentSelected: {
           backgroundColor: colors.card,
         },
         segmentText: {
           fontSize: 14,
-          fontWeight: "600",
+          fontWeight: '600',
           color: colors.textMuted,
         },
         segmentTextSelected: {
           color: colors.accent,
         },
         frequencyRow: {
-          flexDirection: "row",
+          flexDirection: 'row',
           gap: 10,
           marginBottom: 24,
         },
         numberRow: {
-          flexDirection: "row",
+          flexDirection: 'row',
           gap: 6,
           marginBottom: 24,
         },
@@ -131,18 +128,18 @@ export default function AddHabitScreen() {
           paddingVertical: 12,
           borderRadius: 12,
           backgroundColor: colors.inputBackground,
-          alignItems: "center",
+          alignItems: 'center',
           borderWidth: 2,
-          borderColor: "transparent",
+          borderColor: 'transparent',
         },
         numberPill: {
           flex: 1,
           paddingVertical: 12,
           borderRadius: 12,
           backgroundColor: colors.inputBackground,
-          alignItems: "center",
+          alignItems: 'center',
           borderWidth: 2,
-          borderColor: "transparent",
+          borderColor: 'transparent',
         },
         frequencyPillSelected: {
           borderColor: colors.accent,
@@ -150,15 +147,15 @@ export default function AddHabitScreen() {
         },
         frequencyPillText: {
           fontSize: 14,
-          fontWeight: "600",
+          fontWeight: '600',
           color: colors.textMuted,
         },
         frequencyPillTextSelected: {
           color: colors.accent,
         },
         endDateRow: {
-          flexDirection: "row",
-          alignItems: "center",
+          flexDirection: 'row',
+          alignItems: 'center',
           gap: 10,
           marginBottom: 24,
         },
@@ -174,11 +171,11 @@ export default function AddHabitScreen() {
         endDateText: {
           color: colors.textPrimary,
           fontSize: 16,
-          fontWeight: "600",
+          fontWeight: '600',
         },
         endDateTextEmpty: {
           color: colors.textMuted,
-          fontWeight: "500",
+          fontWeight: '500',
         },
         endDateClear: {
           width: 40,
@@ -187,19 +184,19 @@ export default function AddHabitScreen() {
           backgroundColor: colors.inputBackground,
           borderWidth: 1,
           borderColor: colors.inputBorder,
-          alignItems: "center",
-          justifyContent: "center",
+          alignItems: 'center',
+          justifyContent: 'center',
         },
         endDateClearText: {
           color: colors.textMuted,
           fontSize: 18,
-          fontWeight: "600",
+          fontWeight: '600',
         },
         saveButton: {
           backgroundColor: colors.accent,
           borderRadius: 12,
           padding: 16,
-          alignItems: "center",
+          alignItems: 'center',
         },
         saveButtonDisabled: {
           opacity: 0.4,
@@ -207,12 +204,12 @@ export default function AddHabitScreen() {
         saveButtonText: {
           color: colors.textPrimary,
           fontSize: 18,
-          fontWeight: "600",
+          fontWeight: '600',
         },
         accessoryBar: {
-          flexDirection: "row",
-          justifyContent: "flex-end",
-          alignItems: "center",
+          flexDirection: 'row',
+          justifyContent: 'flex-end',
+          alignItems: 'center',
           backgroundColor: colors.card,
           borderTopWidth: 1,
           borderTopColor: colors.cardBorder,
@@ -228,14 +225,14 @@ export default function AddHabitScreen() {
         accessoryButtonText: {
           color: colors.accent,
           fontSize: 15,
-          fontWeight: "600",
+          fontWeight: '600',
         },
         // End-date picker modal
         backdrop: {
           flex: 1,
-          backgroundColor: "rgba(0,0,0,0.55)",
-          justifyContent: "center",
-          alignItems: "center",
+          backgroundColor: 'rgba(0,0,0,0.55)',
+          justifyContent: 'center',
+          alignItems: 'center',
           paddingHorizontal: 20,
         },
         sheet: {
@@ -244,24 +241,24 @@ export default function AddHabitScreen() {
           padding: 16,
           borderWidth: 1,
           borderColor: colors.cardBorder,
-          width: "100%",
+          width: '100%',
           maxWidth: 360,
         },
         sheetTitle: {
           color: colors.textPrimary,
           fontSize: 16,
-          fontWeight: "600",
-          textAlign: "center",
+          fontWeight: '600',
+          textAlign: 'center',
           marginBottom: 8,
         },
         spinnerWrap: {
-          alignItems: "center",
-          justifyContent: "center",
+          alignItems: 'center',
+          justifyContent: 'center',
           marginBottom: 8,
         },
         actions: {
-          flexDirection: "row",
-          justifyContent: "flex-end",
+          flexDirection: 'row',
+          justifyContent: 'flex-end',
           gap: 8,
         },
         btn: {
@@ -275,7 +272,7 @@ export default function AddHabitScreen() {
         btnGhostText: {
           color: colors.textSecondary,
           fontSize: 14,
-          fontWeight: "600",
+          fontWeight: '600',
         },
         btnPrimary: {
           backgroundColor: colors.accent,
@@ -283,22 +280,20 @@ export default function AddHabitScreen() {
         btnPrimaryText: {
           color: colors.textPrimary,
           fontSize: 14,
-          fontWeight: "600",
+          fontWeight: '600',
         },
       }),
-    [colors]
+    [colors],
   );
 
   const router = useRouter();
-  const [name, setName] = useState("");
-  const [selectedEmoji, setSelectedEmoji] = useState("🎯");
+  const [name, setName] = useState('');
+  const [selectedEmoji, setSelectedEmoji] = useState('🎯');
   const [emojiPickerOpen, setEmojiPickerOpen] = useState(false);
-  const [cadenceKind, setCadenceKind] = useState<CadenceKind>("interval");
+  const [cadenceKind, setCadenceKind] = useState<CadenceKind>('interval');
   const [intervalDays, setIntervalDays] = useState(1);
   const [daysPerWeek, setDaysPerWeek] = useState(3);
-  const [selectedWeekdays, setSelectedWeekdays] = useState<number[]>([
-    1, 2, 3, 4, 5,
-  ]);
+  const [selectedWeekdays, setSelectedWeekdays] = useState<number[]>([1, 2, 3, 4, 5]);
   // Seed the new-habit reminder time from the legacy global setting so the
   // user's existing default carries over to anything they create now.
   // null means "no reminder for this habit".
@@ -308,9 +303,7 @@ export default function AddHabitScreen() {
   const [endDatePickerOpen, setEndDatePickerOpen] = useState(false);
   // Local Date the spinner mutates while the modal is open. Default = a week
   // from now so the picker opens on something sensible.
-  const [endDateDraft, setEndDateDraft] = useState<Date>(() =>
-    parseDate(addDays(getToday(), 7))
-  );
+  const [endDateDraft, setEndDateDraft] = useState<Date>(() => parseDate(addDays(getToday(), 7)));
 
   React.useEffect(() => {
     loadNotificationSettings().then((s) => {
@@ -321,20 +314,20 @@ export default function AddHabitScreen() {
 
   const toggleWeekday = (day: number) => {
     setSelectedWeekdays((prev) =>
-      prev.includes(day) ? prev.filter((d) => d !== day) : [...prev, day]
+      prev.includes(day) ? prev.filter((d) => d !== day) : [...prev, day],
     );
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
   };
 
   const buildFrequency = (): HabitFrequency => {
-    if (cadenceKind === "interval") {
-      return { kind: "interval", days: intervalDays };
+    if (cadenceKind === 'interval') {
+      return { kind: 'interval', days: intervalDays };
     }
-    if (cadenceKind === "perWeek") {
-      return { kind: "perWeek", daysPerWeek };
+    if (cadenceKind === 'perWeek') {
+      return { kind: 'perWeek', daysPerWeek };
     }
     return {
-      kind: "weekdays",
+      kind: 'weekdays',
       weekdays: [...selectedWeekdays].sort((a, b) => a - b),
     };
   };
@@ -343,31 +336,18 @@ export default function AddHabitScreen() {
     const trimmed = name.trim();
     if (!trimmed) return;
 
-    await addHabit(
-      trimmed,
-      selectedEmoji,
-      buildFrequency(),
-      reminderHour,
-      reminderMinute,
-      endDate
-    );
-    await Haptics.notificationAsync(
-      Haptics.NotificationFeedbackType.Success
-    );
+    await addHabit(trimmed, selectedEmoji, buildFrequency(), reminderHour, reminderMinute, endDate);
+    await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
     router.back();
   };
 
   const canSave =
-    name.trim().length > 0 &&
-    (cadenceKind !== "weekdays" || selectedWeekdays.length > 0);
+    name.trim().length > 0 && (cadenceKind !== 'weekdays' || selectedWeekdays.length > 0);
 
   // End-date picker minimum = tomorrow (an end date earlier than today
   // would mean the campaign already ended, which doesn't make sense
   // for a brand-new habit).
-  const minimumEndDate = useMemo(
-    () => parseDate(addDays(getToday(), 1)),
-    []
-  );
+  const minimumEndDate = useMemo(() => parseDate(addDays(getToday(), 1)), []);
 
   const openEndDatePicker = () => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
@@ -386,12 +366,9 @@ export default function AddHabitScreen() {
   return (
     <KeyboardAvoidingView
       style={styles.container}
-      behavior={Platform.OS === "ios" ? "padding" : "height"}
+      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
     >
-      <ScrollView
-        contentContainerStyle={styles.scrollContent}
-        keyboardShouldPersistTaps="handled"
-      >
+      <ScrollView contentContainerStyle={styles.scrollContent} keyboardShouldPersistTaps="handled">
         {/* Habit name + emoji box */}
         <Text style={styles.label}>Habit name</Text>
         <View style={styles.nameRow}>
@@ -405,9 +382,7 @@ export default function AddHabitScreen() {
             maxLength={50}
             returnKeyType="default"
             blurOnSubmit={false}
-            inputAccessoryViewID={
-              Platform.OS === "ios" ? KEYBOARD_ACCESSORY_ID : undefined
-            }
+            inputAccessoryViewID={Platform.OS === 'ios' ? KEYBOARD_ACCESSORY_ID : undefined}
           />
           <Pressable
             onPress={() => {
@@ -426,64 +401,46 @@ export default function AddHabitScreen() {
         <View style={styles.segmentedRow}>
           <Pressable
             onPress={() => {
-              setCadenceKind("interval");
+              setCadenceKind('interval');
               Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
             }}
-            style={[
-              styles.segment,
-              cadenceKind === "interval" && styles.segmentSelected,
-            ]}
+            style={[styles.segment, cadenceKind === 'interval' && styles.segmentSelected]}
           >
             <Text
-              style={[
-                styles.segmentText,
-                cadenceKind === "interval" && styles.segmentTextSelected,
-              ]}
+              style={[styles.segmentText, cadenceKind === 'interval' && styles.segmentTextSelected]}
             >
               Interval
             </Text>
           </Pressable>
           <Pressable
             onPress={() => {
-              setCadenceKind("perWeek");
+              setCadenceKind('perWeek');
               Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
             }}
-            style={[
-              styles.segment,
-              cadenceKind === "perWeek" && styles.segmentSelected,
-            ]}
+            style={[styles.segment, cadenceKind === 'perWeek' && styles.segmentSelected]}
           >
             <Text
-              style={[
-                styles.segmentText,
-                cadenceKind === "perWeek" && styles.segmentTextSelected,
-              ]}
+              style={[styles.segmentText, cadenceKind === 'perWeek' && styles.segmentTextSelected]}
             >
               Per week
             </Text>
           </Pressable>
           <Pressable
             onPress={() => {
-              setCadenceKind("weekdays");
+              setCadenceKind('weekdays');
               Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
             }}
-            style={[
-              styles.segment,
-              cadenceKind === "weekdays" && styles.segmentSelected,
-            ]}
+            style={[styles.segment, cadenceKind === 'weekdays' && styles.segmentSelected]}
           >
             <Text
-              style={[
-                styles.segmentText,
-                cadenceKind === "weekdays" && styles.segmentTextSelected,
-              ]}
+              style={[styles.segmentText, cadenceKind === 'weekdays' && styles.segmentTextSelected]}
             >
               Specific days
             </Text>
           </Pressable>
         </View>
 
-        {cadenceKind === "interval" ? (
+        {cadenceKind === 'interval' ? (
           <View style={styles.frequencyRow}>
             {INTERVAL_FREQUENCY_OPTIONS.map((option) => (
               <Pressable
@@ -500,8 +457,7 @@ export default function AddHabitScreen() {
                 <Text
                   style={[
                     styles.frequencyPillText,
-                    intervalDays === option.value &&
-                      styles.frequencyPillTextSelected,
+                    intervalDays === option.value && styles.frequencyPillTextSelected,
                   ]}
                 >
                   {option.label}
@@ -509,7 +465,7 @@ export default function AddHabitScreen() {
               </Pressable>
             ))}
           </View>
-        ) : cadenceKind === "perWeek" ? (
+        ) : cadenceKind === 'perWeek' ? (
           <>
             <Text style={styles.subLabel}>Days per week</Text>
             <View style={styles.numberRow}>
@@ -520,10 +476,7 @@ export default function AddHabitScreen() {
                     setDaysPerWeek(n);
                     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
                   }}
-                  style={[
-                    styles.numberPill,
-                    daysPerWeek === n && styles.frequencyPillSelected,
-                  ]}
+                  style={[styles.numberPill, daysPerWeek === n && styles.frequencyPillSelected]}
                 >
                   <Text
                     style={[
@@ -548,10 +501,7 @@ export default function AddHabitScreen() {
                     key={idx}
                     onPress={() => toggleWeekday(idx)}
                     accessibilityLabel={WEEKDAY_FULL[idx]}
-                    style={[
-                      styles.numberPill,
-                      selected && styles.frequencyPillSelected,
-                    ]}
+                    style={[styles.numberPill, selected && styles.frequencyPillSelected]}
                   >
                     <Text
                       style={[
@@ -572,20 +522,15 @@ export default function AddHabitScreen() {
         <Text style={styles.label}>End date (optional)</Text>
         <View style={styles.endDateRow}>
           <Pressable onPress={openEndDatePicker} style={styles.endDateButton}>
-            <Text
-              style={[
-                styles.endDateText,
-                !endDate && styles.endDateTextEmpty,
-              ]}
-            >
+            <Text style={[styles.endDateText, !endDate && styles.endDateTextEmpty]}>
               {endDate
-                ? parseDate(endDate).toLocaleDateString("en-US", {
-                    weekday: "short",
-                    month: "short",
-                    day: "numeric",
-                    year: "numeric",
+                ? parseDate(endDate).toLocaleDateString('en-US', {
+                    weekday: 'short',
+                    month: 'short',
+                    day: 'numeric',
+                    year: 'numeric',
                   })
-                : "Set end date ▾"}
+                : 'Set end date ▾'}
             </Text>
           </Pressable>
           {endDate && (
@@ -615,10 +560,7 @@ export default function AddHabitScreen() {
 
         {/* Save Button */}
         <Pressable
-          style={[
-            styles.saveButton,
-            !canSave && styles.saveButtonDisabled,
-          ]}
+          style={[styles.saveButton, !canSave && styles.saveButtonDisabled]}
           onPress={handleSave}
           disabled={!canSave}
         >
@@ -626,7 +568,7 @@ export default function AddHabitScreen() {
         </Pressable>
       </ScrollView>
 
-      {Platform.OS === "ios" && (
+      {Platform.OS === 'ios' && (
         <InputAccessoryView nativeID={KEYBOARD_ACCESSORY_ID}>
           <View style={styles.accessoryBar}>
             <Pressable
@@ -656,20 +598,14 @@ export default function AddHabitScreen() {
         animationType="fade"
         onRequestClose={() => setEndDatePickerOpen(false)}
       >
-        <Pressable
-          style={styles.backdrop}
-          onPress={() => setEndDatePickerOpen(false)}
-        >
-          <Pressable
-            style={styles.sheet}
-            onPress={(e) => e.stopPropagation()}
-          >
+        <Pressable style={styles.backdrop} onPress={() => setEndDatePickerOpen(false)}>
+          <Pressable style={styles.sheet} onPress={(e) => e.stopPropagation()}>
             <Text style={styles.sheetTitle}>End date</Text>
             <View style={styles.spinnerWrap}>
               <DateTimePicker
                 value={endDateDraft}
                 mode="date"
-                display={Platform.OS === "ios" ? "spinner" : "default"}
+                display={Platform.OS === 'ios' ? 'spinner' : 'default'}
                 themeVariant="dark"
                 textColor={colors.textPrimary}
                 minimumDate={minimumEndDate}
@@ -685,10 +621,7 @@ export default function AddHabitScreen() {
               >
                 <Text style={styles.btnGhostText}>Cancel</Text>
               </Pressable>
-              <Pressable
-                onPress={handleEndDateDone}
-                style={[styles.btn, styles.btnPrimary]}
-              >
+              <Pressable onPress={handleEndDateDone} style={[styles.btn, styles.btnPrimary]}>
                 <Text style={styles.btnPrimaryText}>Done</Text>
               </Pressable>
             </View>

@@ -1,19 +1,9 @@
-import React, { useMemo } from "react";
-import {
-  Modal,
-  Text,
-  StyleSheet,
-  Pressable,
-  KeyboardAvoidingView,
-  Platform,
-} from "react-native";
-import * as Haptics from "expo-haptics";
-import { useTheme } from "../hooks/useTheme";
-import { Habit } from "../types/habit";
-import {
-  getCompletionsInRange,
-  getDueDayCount,
-} from "../utils/dateUtils";
+import React, { useMemo } from 'react';
+import { Modal, Text, StyleSheet, Pressable, KeyboardAvoidingView, Platform } from 'react-native';
+import * as Haptics from 'expo-haptics';
+import { useTheme } from '../hooks/useTheme';
+import { Habit } from '../types/habit';
+import { getCompletionsInRange, getDueDayCount } from '../utils/dateUtils';
 
 interface HabitCompletedModalProps {
   visible: boolean;
@@ -26,22 +16,18 @@ interface HabitCompletedModalProps {
  * fixed-campaign habit (one with an `endDate`). Mirrors NoteEditorModal's
  * sheet styling so the visual language stays consistent.
  */
-export function HabitCompletedModal({
-  visible,
-  habit,
-  onClose,
-}: HabitCompletedModalProps) {
+export function HabitCompletedModal({ visible, habit, onClose }: HabitCompletedModalProps) {
   const { colors } = useTheme();
   const styles = useMemo(
     () =>
       StyleSheet.create({
         backdrop: {
           flex: 1,
-          backgroundColor: "rgba(0,0,0,0.55)",
+          backgroundColor: 'rgba(0,0,0,0.55)',
         },
         center: {
           flex: 1,
-          justifyContent: "center",
+          justifyContent: 'center',
           paddingHorizontal: 20,
         },
         sheet: {
@@ -50,7 +36,7 @@ export function HabitCompletedModal({
           padding: 22,
           borderWidth: 1,
           borderColor: colors.cardBorder,
-          alignItems: "center",
+          alignItems: 'center',
         },
         bigEmoji: {
           fontSize: 56,
@@ -59,27 +45,27 @@ export function HabitCompletedModal({
         title: {
           color: colors.textPrimary,
           fontSize: 22,
-          fontWeight: "700",
+          fontWeight: '700',
           marginBottom: 6,
-          textAlign: "center",
+          textAlign: 'center',
         },
         subtitle: {
           color: colors.textSecondary,
           fontSize: 15,
-          textAlign: "center",
+          textAlign: 'center',
           marginBottom: 14,
         },
         summary: {
           color: colors.textPrimary,
           fontSize: 15,
-          fontWeight: "600",
-          textAlign: "center",
+          fontWeight: '600',
+          textAlign: 'center',
           marginBottom: 4,
         },
         verdict: {
           color: colors.textSecondary,
           fontSize: 14,
-          textAlign: "center",
+          textAlign: 'center',
           marginBottom: 20,
         },
         button: {
@@ -91,18 +77,16 @@ export function HabitCompletedModal({
         buttonText: {
           color: colors.textPrimary,
           fontSize: 16,
-          fontWeight: "600",
+          fontWeight: '600',
         },
       }),
-    [colors]
+    [colors],
   );
 
   if (!habit || !habit.endDate) return null;
 
   const anchorStart =
-    habit.completions.length > 0
-      ? [...habit.completions].sort()[0]
-      : habit.createdAt;
+    habit.completions.length > 0 ? [...habit.completions].sort()[0] : habit.createdAt;
   const expected = getDueDayCount(habit, anchorStart, habit.endDate);
   const done = getCompletionsInRange(habit, anchorStart, habit.endDate);
   const missed = Math.max(0, expected - done);
@@ -110,13 +94,11 @@ export function HabitCompletedModal({
   // perWeek talks in "slots" (each completion is a slot toward the weekly
   // target); the other cadences talk in "days" since each due day is one
   // expected completion.
-  const unit = habit.frequency.kind === "perWeek" ? "slot" : "day";
-  const unitPlural = unit === "slot" ? "slots" : "days";
+  const unit = habit.frequency.kind === 'perWeek' ? 'slot' : 'day';
+  const unitPlural = unit === 'slot' ? 'slots' : 'days';
   const summary = `${done} of ${expected} ${expected === 1 ? unit : unitPlural} complete`;
   const verdict =
-    missed === 0
-      ? "Flawless! 🏆"
-      : `You missed ${missed} ${missed === 1 ? unit : unitPlural}.`;
+    missed === 0 ? 'Flawless! 🏆' : `You missed ${missed} ${missed === 1 ? unit : unitPlural}.`;
 
   const handleDone = () => {
     Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
@@ -124,21 +106,13 @@ export function HabitCompletedModal({
   };
 
   return (
-    <Modal
-      visible={visible}
-      transparent
-      animationType="fade"
-      onRequestClose={onClose}
-    >
+    <Modal visible={visible} transparent animationType="fade" onRequestClose={onClose}>
       <Pressable style={styles.backdrop} onPress={onClose}>
         <KeyboardAvoidingView
-          behavior={Platform.OS === "ios" ? "padding" : undefined}
+          behavior={Platform.OS === 'ios' ? 'padding' : undefined}
           style={styles.center}
         >
-          <Pressable
-            style={styles.sheet}
-            onPress={(e) => e.stopPropagation()}
-          >
+          <Pressable style={styles.sheet} onPress={(e) => e.stopPropagation()}>
             <Text style={styles.bigEmoji}>🎉</Text>
             <Text style={styles.title}>Congratulations!</Text>
             <Text style={styles.subtitle}>

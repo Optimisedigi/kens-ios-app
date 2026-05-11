@@ -1,8 +1,8 @@
-import React, { useMemo } from "react";
-import { View, Text, StyleSheet } from "react-native";
-import { Habit, HabitStatus, getFrequencyLabel } from "../types/habit";
-import { useTheme } from "../hooks/useTheme";
-import { ThemeColors } from "../constants/colors";
+import React, { useMemo } from 'react';
+import { View, Text, StyleSheet } from 'react-native';
+import { Habit, HabitStatus, getFrequencyLabel } from '../types/habit';
+import { useTheme } from '../hooks/useTheme';
+import { ThemeColors } from '../constants/colors';
 import {
   addDays,
   getStripDayStatus,
@@ -12,19 +12,19 @@ import {
   getHabitStatus,
   getIsoWeekStart,
   getToday,
-} from "../utils/dateUtils";
+} from '../utils/dateUtils';
 
 /** Maps a habit's live cadence-health status to a single dot colour. */
 function getCadenceDotColor(status: HabitStatus, colors: ThemeColors): string {
   switch (status) {
-    case "completed_today":
+    case 'completed_today':
       return colors.completed;
-    case "safe":
-    case "new":
+    case 'safe':
+    case 'new':
       return colors.safe;
-    case "warning":
+    case 'warning':
       return colors.warning;
-    case "missed_twice":
+    case 'missed_twice':
       return colors.missed;
     default:
       return colors.cellEmpty;
@@ -34,7 +34,7 @@ function getCadenceDotColor(status: HabitStatus, colors: ThemeColors): string {
 interface HabitStripProps {
   habit: Habit;
   /** "frequency" = one cell per due window, "days" = one cell per calendar day */
-  mode: "frequency" | "days";
+  mode: 'frequency' | 'days';
   /** How many cells per row in the mini grid */
   columns?: number;
   /** How many rows to render (controls strip height) */
@@ -64,15 +64,15 @@ export function HabitStrip({
           marginBottom: 18,
         },
         headerRow: {
-          flexDirection: "row",
-          alignItems: "center",
-          justifyContent: "space-between",
+          flexDirection: 'row',
+          alignItems: 'center',
+          justifyContent: 'space-between',
           marginBottom: 8,
           gap: 8,
         },
         titleRow: {
-          flexDirection: "row",
-          alignItems: "center",
+          flexDirection: 'row',
+          alignItems: 'center',
           gap: 8,
           flex: 1,
           flexShrink: 1,
@@ -85,22 +85,22 @@ export function HabitStrip({
         name: {
           color: colors.textPrimary,
           fontSize: 16,
-          fontWeight: "600",
+          fontWeight: '600',
           flexShrink: 1,
         },
         frequencyTag: {
           color: colors.textMuted,
           fontSize: 11,
-          fontWeight: "600",
+          fontWeight: '600',
           backgroundColor: colors.inputBackground,
           paddingHorizontal: 6,
           paddingVertical: 2,
           borderRadius: 6,
-          overflow: "hidden",
+          overflow: 'hidden',
         },
         metaRow: {
-          flexDirection: "row",
-          alignItems: "center",
+          flexDirection: 'row',
+          alignItems: 'center',
           gap: 6,
         },
         cadenceDot: {
@@ -113,7 +113,7 @@ export function HabitStrip({
           fontSize: 12,
         },
         row: {
-          flexDirection: "row",
+          flexDirection: 'row',
           gap: CELL_GAP,
           marginBottom: CELL_GAP,
         },
@@ -123,7 +123,7 @@ export function HabitStrip({
           borderRadius: 4,
         },
       }),
-    [colors]
+    [colors],
   );
 
   const streak = getCurrentStreak(habit);
@@ -135,13 +135,7 @@ export function HabitStrip({
   // Build the cells array
   type Cell = {
     key: string;
-    state:
-      | "completed"
-      | "completed_filler"
-      | "missed_once"
-      | "missed_twice"
-      | "empty"
-      | "future";
+    state: 'completed' | 'completed_filler' | 'missed_once' | 'missed_twice' | 'empty' | 'future';
   };
   const cells: Cell[] = [];
 
@@ -153,10 +147,10 @@ export function HabitStrip({
   const sortedCompletions = [...habit.completions].sort();
   const anchor = sortedCompletions[0] ?? habit.createdAt;
 
-  if (mode === "days") {
+  if (mode === 'days') {
     const todayStr = getToday();
 
-    if (habit.frequency.kind === "perWeek") {
+    if (habit.frequency.kind === 'perWeek') {
       // PerWeek strip: walk ISO week by ISO week (Mon–Sun) from the week
       // of the first completion (or createdAt if none) to the current
       // week. Each week emits its actual completions as colored cells,
@@ -169,9 +163,7 @@ export function HabitStrip({
       // none last week → 1 red box", not target−count reds).
       const target = habit.frequency.daysPerWeek;
       const completionSet = new Set(habit.completions);
-      const firstWeekStart = getIsoWeekStart(
-        sortedCompletions[0] ?? habit.createdAt
-      );
+      const firstWeekStart = getIsoWeekStart(sortedCompletions[0] ?? habit.createdAt);
       const todayWeekStart = getIsoWeekStart(todayStr);
 
       let wkStart = firstWeekStart;
@@ -187,7 +179,7 @@ export function HabitStrip({
         }
         const shown = inWeek.slice(0, target);
         for (const d of shown) {
-          cells.push({ key: d, state: "completed" });
+          cells.push({ key: d, state: 'completed' });
         }
 
         const isCurrent = wkStart === todayWeekStart;
@@ -196,14 +188,14 @@ export function HabitStrip({
           // haven't hit the target yet — the week isn't over so we never
           // mark it red.
           if (inWeek.length < target) {
-            cells.push({ key: `pending-${wkStart}`, state: "empty" });
+            cells.push({ key: `pending-${wkStart}`, state: 'empty' });
           }
         } else if (inWeek.length < target) {
           // Past week shortfall: one red cell, regardless of how many were
           // missed (1/2 short and 0/2 short both render as a single miss).
           cells.push({
             key: `miss-${wkStart}`,
-            state: "missed_twice",
+            state: 'missed_twice',
           });
         }
 
@@ -218,7 +210,7 @@ export function HabitStrip({
       let dateStr = anchor;
       while (cells.length < totalCells && dateStr <= todayStr) {
         const status = getStripDayStatus(habit, dateStr);
-        if (status !== "completed_filler") {
+        if (status !== 'completed_filler') {
           cells.push({ key: dateStr, state: status });
         }
         dateStr = addDays(dateStr, 1);
@@ -229,12 +221,12 @@ export function HabitStrip({
     // first completion (or createdAt if none).
     const slots = getFrequencySlotsFromStart(habit, totalCells, anchor);
     for (const slot of slots) {
-      const state: Cell["state"] =
-        slot.status === "completed"
-          ? "completed"
-          : slot.status === "future"
-            ? "future"
-            : "missed_twice";
+      const state: Cell['state'] =
+        slot.status === 'completed'
+          ? 'completed'
+          : slot.status === 'future'
+            ? 'future'
+            : 'missed_twice';
       cells.push({ key: slot.start, state });
     }
   }
@@ -247,7 +239,7 @@ export function HabitStrip({
   // Pad the END with "future" placeholders so the strip always fills the grid.
   let padIndex = 0;
   while (cells.length < totalCells) {
-    cells.push({ key: `pad-${padIndex++}`, state: "future" });
+    cells.push({ key: `pad-${padIndex++}`, state: 'future' });
   }
 
   // Trim if we somehow have more (defensive) — drop oldest cells (they
@@ -266,15 +258,11 @@ export function HabitStrip({
     <View style={styles.container}>
       <View style={styles.headerRow}>
         <View style={styles.titleRow}>
-          <View
-            style={[styles.colorDot, { backgroundColor: habit.color }]}
-          />
+          <View style={[styles.colorDot, { backgroundColor: habit.color }]} />
           <Text style={styles.name} numberOfLines={1}>
             {habit.name}
           </Text>
-          <Text style={styles.frequencyTag}>
-            {getFrequencyLabel(habit.frequency)}
-          </Text>
+          <Text style={styles.frequencyTag}>{getFrequencyLabel(habit.frequency)}</Text>
         </View>
         <View style={styles.metaRow}>
           <View
@@ -283,7 +271,7 @@ export function HabitStrip({
           />
           <Text style={styles.meta}>
             {streak}
-            {habit.frequency.kind === "perWeek" ? "w" : "d"} · {rate}%
+            {habit.frequency.kind === 'perWeek' ? 'w' : 'd'} · {rate}%
           </Text>
         </View>
       </View>
@@ -292,11 +280,7 @@ export function HabitStrip({
         {chunkedRows.map((row, rowIndex) => (
           <View key={rowIndex} style={styles.row}>
             {row.map((cell) => (
-              <Cell
-                key={cell.key}
-                state={cell.state}
-                color={habit.color}
-              />
+              <Cell key={cell.key} state={cell.state} color={habit.color} />
             ))}
           </View>
         ))}
@@ -309,13 +293,7 @@ function Cell({
   state,
   color,
 }: {
-  state:
-    | "completed"
-    | "completed_filler"
-    | "missed_once"
-    | "missed_twice"
-    | "empty"
-    | "future";
+  state: 'completed' | 'completed_filler' | 'missed_once' | 'missed_twice' | 'empty' | 'future';
   color: string;
 }) {
   const { colors } = useTheme();
@@ -328,7 +306,7 @@ function Cell({
           borderRadius: 4,
         },
       }),
-    [colors]
+    [colors],
   );
 
   // Both "future" and "empty" render as the same dark filled box — keeps
@@ -341,21 +319,21 @@ function Cell({
   let backgroundColor: string;
   let opacity = 1;
   switch (state) {
-    case "completed":
+    case 'completed':
       backgroundColor = color;
       break;
-    case "completed_filler":
+    case 'completed_filler':
       backgroundColor = color;
       opacity = 0.3;
       break;
-    case "missed_once":
+    case 'missed_once':
       backgroundColor = colors.cellMissedOnce;
       break;
-    case "missed_twice":
+    case 'missed_twice':
       backgroundColor = colors.cellMissedTwice;
       break;
-    case "future":
-    case "empty":
+    case 'future':
+    case 'empty':
     default:
       backgroundColor = colors.cellEmpty;
   }
