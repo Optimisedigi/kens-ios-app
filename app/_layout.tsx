@@ -10,6 +10,7 @@ import { Ionicons } from "@expo/vector-icons";
 import "react-native-reanimated";
 import { ThemeProvider, useTheme } from "../src/hooks/useTheme";
 import { UpdateToast } from "../src/components/UpdateToast";
+import { NewBuildBanner } from "../src/components/NewBuildBanner";
 
 export const unstable_settings = {
   anchor: "(tabs)",
@@ -81,6 +82,7 @@ function ThemedStack() {
       </Stack>
       <StatusBar style={themeName === "dark" ? "light" : "dark"} />
       <UpdateToast />
+      <NewBuildBanner />
     </NavThemeProvider>
   );
 }

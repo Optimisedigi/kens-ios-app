@@ -2,7 +2,7 @@
   "expo": {
     "name": "Never Miss Twice",
     "slug": "never-miss-twice",
-    "version": "1.0.1",
+    "version": "1.0.2",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
     "scheme": "nevermisstwice",
