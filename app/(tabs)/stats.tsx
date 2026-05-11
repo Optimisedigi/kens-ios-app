@@ -556,6 +556,7 @@ export default function StatsScreen() {
                     <CalendarGrid
                       habit={selectedRawHabit}
                       weeks={8}
+                      backfillMode={backfillMode}
                       onDayPress={(d) => {
                         if (backfillMode) {
                           Haptics.notificationAsync(
@@ -571,6 +572,7 @@ export default function StatsScreen() {
                 ) : calendarView === "months" ? (
                   <MonthlyCalendar
                     habit={selectedRawHabit}
+                    backfillMode={backfillMode}
                     onDayPress={(d) => {
                       if (backfillMode) {
                         Haptics.notificationAsync(

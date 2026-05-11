@@ -10,6 +10,7 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
+import Constants from "expo-constants";
 import { useHabits } from "../../src/hooks/useHabits";
 import { useNotifications } from "../../src/hooks/useNotifications";
 import { useTheme } from "../../src/hooks/useTheme";
@@ -322,7 +323,12 @@ export default function SettingsScreen() {
               You can miss once, but never twice.{"\n"}
               Build consistency, not perfection.
             </Text>
-            <Text style={styles.aboutVersion}>Version 1.0.0</Text>
+            <Text style={styles.aboutVersion}>
+              Version {Constants.expoConfig?.version ?? "–"}
+              {Constants.expoConfig?.ios?.buildNumber
+                ? ` (${Constants.expoConfig.ios.buildNumber})`
+                : ""}
+            </Text>
           </View>
         </View>
       </ScrollView>

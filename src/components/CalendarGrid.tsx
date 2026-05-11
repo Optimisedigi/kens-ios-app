@@ -10,12 +10,19 @@ interface CalendarGridProps {
   weeks?: number; // Number of weeks to show (default: 12)
   /** Called when the user taps a day cell within [createdAt, today]. */
   onDayPress?: (dateStr: string) => void;
+  /**
+   * Backfill mode — when true, dates before `habit.createdAt` are also
+   * tappable so the user can log history that pre-dates when they added
+   * the habit to the app. Tappable empties get a faint outline.
+   */
+  backfillMode?: boolean;
 }
 
 export function CalendarGrid({
   habit,
   weeks = 12,
   onDayPress,
+  backfillMode,
 }: CalendarGridProps) {
   const { colors } = useTheme();
   const styles = useMemo(
@@ -132,8 +139,8 @@ export function CalendarGrid({
               const day = parseDate(dateStr).getDate().toString();
               const tappable =
                 onDayPress &&
-                dateStr >= habit.createdAt &&
-                dateStr <= todayStr;
+                dateStr <= todayStr &&
+                (backfillMode || dateStr >= habit.createdAt);
               return (
                 <DayCell
                   key={dateStr}
@@ -141,6 +148,7 @@ export function CalendarGrid({
                   label={day}
                   size={40}
                   hasNote={Boolean(habit.notes[dateStr])}
+                  tappableHint={backfillMode && tappable}
                   onPress={
                     tappable ? () => onDayPress!(dateStr) : undefined
                   }

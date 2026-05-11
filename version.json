@@ -1,6 +1,6 @@
 {
   "$comment": "Bump `latest` to the new app.json version every time a new TestFlight build goes out. The app fetches this on launch, compares against its own bundled version, and shows an in-app banner with a 'Open TestFlight' button when behind. `minimum` is the oldest version still supported — if you ever ship a hard-required update, raise this and the banner becomes non-dismissible.",
-  "latest": "1.0.2",
+  "latest": "1.0.3",
   "minimum": "1.0.0",
-  "releaseNotes": "In-app TestFlight update banner so you'll know when a new build is ready."
+  "releaseNotes": "Backfill mode now lets you log dates before you created the habit, plus the About screen shows the actual installed version."
 }

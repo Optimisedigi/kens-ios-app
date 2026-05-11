@@ -477,9 +477,15 @@ export async function toggleCompletion(id: string): Promise<Habit[]> {
 /**
  * Toggle completion for an arbitrary YYYY-MM-DD on a habit. Used by the
  * Progress tab's backfill mode so the user can retroactively mark days they
- * forgot to log. The date is kept verbatim in the completions array so all
- * existing status / streak / calendar logic stays consistent — they only
- * read from `habit.completions`.
+ * forgot to log — including days **before** the habit was originally
+ * created (for habits the user has been doing all along but only just
+ * added to the app).
+ *
+ * When the toggled-on date is earlier than the habit's current
+ * `createdAt`, we extend `createdAt` backward to that date so the
+ * calendar grids, status logic, and stats all treat it as part of the
+ * habit's history. Un-ticking never moves createdAt forward — the user's
+ * earliest completion stays the anchor.
  */
 export async function toggleCompletionForDate(
   id: string,
@@ -489,11 +495,15 @@ export async function toggleCompletionForDate(
   const updated = habits.map((h) => {
     if (h.id !== id) return h;
     const alreadyCompleted = h.completions.includes(dateStr);
+    const nextCompletions = alreadyCompleted
+      ? h.completions.filter((d) => d !== dateStr)
+      : [...h.completions, dateStr].sort();
+    const nextCreatedAt =
+      !alreadyCompleted && dateStr < h.createdAt ? dateStr : h.createdAt;
     return {
       ...h,
-      completions: alreadyCompleted
-        ? h.completions.filter((d) => d !== dateStr)
-        : [...h.completions, dateStr].sort(),
+      createdAt: nextCreatedAt,
+      completions: nextCompletions,
     };
   });
   await saveHabits(updated);

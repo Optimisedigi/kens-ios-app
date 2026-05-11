@@ -1,4 +1,4 @@
-import React, { useMemo, useRef, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import {
   View,
   Text,
@@ -20,6 +20,13 @@ interface MonthlyCalendarProps {
   habit: Habit;
   /** Called when the user taps a day cell within [createdAt, today]. */
   onDayPress?: (dateStr: string) => void;
+  /**
+   * Backfill mode — when true, dates **before** `habit.createdAt` are
+   * also tappable so the user can log history that pre-dates when they
+   * added the habit to the app. Empty cells get a faint outline so
+   * they're discoverable as tap targets.
+   */
+  backfillMode?: boolean;
 }
 
 interface MonthData {
@@ -36,9 +43,19 @@ const SWIPE_THRESHOLD = 40;
 /**
  * Get all months from habit creation to today, oldest first.
  * Index 0 = month of habit creation; index `length - 1` = current month.
+ *
+ * When `extraMonthsBack` > 0 the range is widened that many months
+ * earlier than `createdAt` so the user can navigate to pre-creation
+ * months in backfill mode.
  */
-function getMonthRange(createdAt: string): MonthData[] {
+function getMonthRange(
+  createdAt: string,
+  extraMonthsBack: number = 0
+): MonthData[] {
   const created = parseDate(createdAt);
+  if (extraMonthsBack > 0) {
+    created.setMonth(created.getMonth() - extraMonthsBack);
+  }
   const today = new Date();
   const months: MonthData[] = [];
 
@@ -68,10 +85,12 @@ function MonthGrid({
   habit,
   data,
   onDayPress,
+  backfillMode,
 }: {
   habit: Habit;
   data: MonthData;
   onDayPress?: (dateStr: string) => void;
+  backfillMode?: boolean;
 }) {
   const { colors } = useTheme();
   const styles = useMemo(
@@ -163,8 +182,13 @@ function MonthGrid({
             const inRange = dateStr >= anchor && dateStr <= todayStr;
             const status = inRange ? getDayStatus(habit, dateStr) : "empty";
             const dayNum = parseDate(dateStr).getDate().toString();
+            // In backfill mode we drop the `>= createdAt` floor so the
+            // user can log history that predates when they added the
+            // habit to the app. Future dates stay non-tappable.
             const tappable =
-              onDayPress && dateStr >= habit.createdAt && dateStr <= todayStr;
+              onDayPress &&
+              dateStr <= todayStr &&
+              (backfillMode || dateStr >= habit.createdAt);
             return (
               <DayCell
                 key={dateStr}
@@ -172,6 +196,7 @@ function MonthGrid({
                 label={dayNum}
                 size={CELL_SIZE}
                 hasNote={Boolean(habit.notes[dateStr])}
+                tappableHint={backfillMode && tappable}
                 onPress={
                   tappable ? () => onDayPress!(dateStr) : undefined
                 }
@@ -184,7 +209,11 @@ function MonthGrid({
   );
 }
 
-export function MonthlyCalendar({ habit, onDayPress }: MonthlyCalendarProps) {
+export function MonthlyCalendar({
+  habit,
+  onDayPress,
+  backfillMode,
+}: MonthlyCalendarProps) {
   const { colors } = useTheme();
   const styles = useMemo(
     () =>
@@ -251,12 +280,21 @@ export function MonthlyCalendar({ habit, onDayPress }: MonthlyCalendarProps) {
     [colors]
   );
 
+  // In backfill mode we expose 24 extra months before `createdAt` so the
+  // user can log history from before they added the habit to the app.
   const months = useMemo(
-    () => getMonthRange(habit.createdAt),
-    [habit.createdAt]
+    () => getMonthRange(habit.createdAt, backfillMode ? 24 : 0),
+    [habit.createdAt, backfillMode]
   );
   // Default to the current month (last entry).
   const [index, setIndex] = useState(months.length - 1);
+  // Re-anchor to the current month whenever the range changes (e.g. when
+  // backfill mode toggles and 24 earlier months get prepended) so the
+  // user always starts on "now" rather than getting silently shuffled
+  // 24 months into the past.
+  useEffect(() => {
+    setIndex(months.length - 1);
+  }, [months.length]);
 
   const canGoPrev = index > 0;
   const canGoNext = index < months.length - 1;
@@ -346,7 +384,12 @@ export function MonthlyCalendar({ habit, onDayPress }: MonthlyCalendarProps) {
 
       {/* Month grid (swipe-to-paginate) */}
       <View {...panResponder.panHandlers}>
-        <MonthGrid habit={habit} data={current} onDayPress={onDayPress} />
+        <MonthGrid
+          habit={habit}
+          data={current}
+          onDayPress={onDayPress}
+          backfillMode={backfillMode}
+        />
       </View>
 
       {/* Legend */}
