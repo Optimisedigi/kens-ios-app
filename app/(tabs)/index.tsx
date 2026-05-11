@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect } from "react";
+import React, { useCallback, useEffect, useMemo } from "react";
 import {
   View,
   Text,
@@ -12,11 +12,74 @@ import { useHabits } from "../../src/hooks/useHabits";
 import { useNotifications } from "../../src/hooks/useNotifications";
 import { HabitCard } from "../../src/components/HabitCard";
 import { EmptyState } from "../../src/components/EmptyState";
-import { Colors } from "../../src/constants/colors";
+import { useTheme } from "../../src/hooks/useTheme";
 import { formatDisplayDate, getToday } from "../../src/utils/dateUtils";
 
 export default function HomeScreen() {
-  const { habits, rawHabits, loading, toggleCompletion, refresh } = useHabits();
+  const { colors } = useTheme();
+  const styles = useMemo(
+    () =>
+      StyleSheet.create({
+        container: {
+          flex: 1,
+          backgroundColor: colors.background,
+        },
+        loadingContainer: {
+          flex: 1,
+          alignItems: "center",
+          justifyContent: "center",
+        },
+        loadingText: {
+          color: colors.textSecondary,
+          fontSize: 16,
+        },
+        header: {
+          flexDirection: "row",
+          justifyContent: "space-between",
+          alignItems: "center",
+          paddingHorizontal: 20,
+          paddingTop: 8,
+          paddingBottom: 16,
+        },
+        title: {
+          fontSize: 28,
+          fontWeight: "bold",
+          color: colors.textPrimary,
+        },
+        date: {
+          fontSize: 15,
+          color: colors.textSecondary,
+          marginTop: 4,
+        },
+        addButton: {
+          width: 44,
+          height: 44,
+          borderRadius: 22,
+          backgroundColor: colors.accent,
+          alignItems: "center",
+          justifyContent: "center",
+        },
+        addButtonText: {
+          color: colors.textPrimary,
+          fontSize: 28,
+          fontWeight: "300",
+          marginTop: -2,
+        },
+        listContent: {
+          paddingBottom: 32,
+        },
+      }),
+    [colors]
+  );
+
+  const {
+    habits,
+    rawHabits,
+    loading,
+    toggleCompletion,
+    setCompletionNote,
+    refresh,
+  } = useHabits();
   const { scheduleHabitNotifications, requestPermissions } = useNotifications();
   const router = useRouter();
 
@@ -76,7 +139,11 @@ export default function HomeScreen() {
           data={habits}
           keyExtractor={(item) => item.id}
           renderItem={({ item }) => (
-            <HabitCard habit={item} onToggle={toggleCompletion} />
+            <HabitCard
+              habit={item}
+              onToggle={toggleCompletion}
+              onSaveNote={setCompletionNote}
+            />
           )}
           contentContainerStyle={styles.listContent}
           showsVerticalScrollIndicator={false}
@@ -85,54 +152,3 @@ export default function HomeScreen() {
     </SafeAreaView>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: Colors.background,
-  },
-  loadingContainer: {
-    flex: 1,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  loadingText: {
-    color: Colors.textSecondary,
-    fontSize: 16,
-  },
-  header: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    paddingHorizontal: 20,
-    paddingTop: 8,
-    paddingBottom: 16,
-  },
-  title: {
-    fontSize: 28,
-    fontWeight: "bold",
-    color: Colors.textPrimary,
-  },
-  date: {
-    fontSize: 15,
-    color: Colors.textSecondary,
-    marginTop: 4,
-  },
-  addButton: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    backgroundColor: Colors.accent,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  addButtonText: {
-    color: Colors.textPrimary,
-    fontSize: 28,
-    fontWeight: "300",
-    marginTop: -2,
-  },
-  listContent: {
-    paddingBottom: 32,
-  },
-});

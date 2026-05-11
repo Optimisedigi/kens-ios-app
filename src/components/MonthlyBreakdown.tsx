@@ -1,7 +1,7 @@
-import React from "react";
+import React, { useMemo } from "react";
 import { View, Text, StyleSheet } from "react-native";
 import { Habit } from "../types/habit";
-import { Colors } from "../constants/colors";
+import { useTheme } from "../hooks/useTheme";
 import { getMonthlyStats, MonthlyStats } from "../utils/dateUtils";
 
 interface MonthlyBreakdownProps {
@@ -10,6 +10,24 @@ interface MonthlyBreakdownProps {
 }
 
 function RateBar({ rate, color }: { rate: number; color: string }) {
+  const { colors } = useTheme();
+  const styles = useMemo(
+    () =>
+      StyleSheet.create({
+        barBackground: {
+          height: 8,
+          backgroundColor: colors.inputBackground,
+          borderRadius: 4,
+          overflow: "hidden",
+          marginBottom: 8,
+        },
+        barFill: {
+          height: "100%",
+          borderRadius: 4,
+        },
+      }),
+    [colors]
+  );
   return (
     <View style={styles.barBackground}>
       <View
@@ -23,12 +41,56 @@ function RateBar({ rate, color }: { rate: number; color: string }) {
 }
 
 function MonthRow({ stats }: { stats: MonthlyStats }) {
+  const { colors } = useTheme();
+  const styles = useMemo(
+    () =>
+      StyleSheet.create({
+        monthRow: {
+          paddingVertical: 12,
+        },
+        monthHeader: {
+          flexDirection: "row",
+          justifyContent: "space-between",
+          alignItems: "center",
+          marginBottom: 8,
+        },
+        monthLabel: {
+          fontSize: 15,
+          fontWeight: "600",
+          color: colors.textPrimary,
+        },
+        monthRate: {
+          fontSize: 15,
+          fontWeight: "bold",
+        },
+        monthDetails: {
+          flexDirection: "row",
+          gap: 16,
+        },
+        detailItem: {
+          flexDirection: "row",
+          alignItems: "center",
+          gap: 5,
+        },
+        detailDot: {
+          width: 8,
+          height: 8,
+          borderRadius: 4,
+        },
+        detailText: {
+          fontSize: 12,
+          color: colors.textSecondary,
+        },
+      }),
+    [colors]
+  );
+
   const ratePercent = Math.round(stats.rate * 100);
 
   // Color the rate based on performance
-  let rateColor = Colors.completed;
-  if (ratePercent < 50) rateColor = Colors.missed;
-  else if (ratePercent < 75) rateColor = Colors.warning;
+  let rateColor = colors.completed;
+  if (ratePercent < 50) rateColor = colors.missed;
+  else if (ratePercent < 75) rateColor = colors.warning;
 
   return (
     <View style={styles.monthRow}>
@@ -44,7 +106,7 @@ function MonthRow({ stats }: { stats: MonthlyStats }) {
       <View style={styles.monthDetails}>
         <View style={styles.detailItem}>
           <View
-            style={[styles.detailDot, { backgroundColor: Colors.completed }]}
+            style={[styles.detailDot, { backgroundColor: colors.completed }]}
           />
           <Text style={styles.detailText}>
             {stats.completed} done
@@ -52,7 +114,7 @@ function MonthRow({ stats }: { stats: MonthlyStats }) {
         </View>
         <View style={styles.detailItem}>
           <View
-            style={[styles.detailDot, { backgroundColor: Colors.missed }]}
+            style={[styles.detailDot, { backgroundColor: colors.missed }]}
           />
           <Text style={styles.detailText}>
             {stats.missedTwice} missed twice
@@ -67,6 +129,27 @@ export function MonthlyBreakdown({
   habit,
   monthsBack = 6,
 }: MonthlyBreakdownProps) {
+  const { colors } = useTheme();
+  const styles = useMemo(
+    () =>
+      StyleSheet.create({
+        container: {},
+        divider: {
+          height: 1,
+          backgroundColor: colors.separator,
+        },
+        emptyContainer: {
+          padding: 20,
+          alignItems: "center",
+        },
+        emptyText: {
+          color: colors.textMuted,
+          fontSize: 14,
+        },
+      }),
+    [colors]
+  );
+
   const monthlyStats = getMonthlyStats(habit, monthsBack);
 
   if (monthlyStats.length === 0) {
@@ -90,66 +173,3 @@ export function MonthlyBreakdown({
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {},
-  monthRow: {
-    paddingVertical: 12,
-  },
-  monthHeader: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    marginBottom: 8,
-  },
-  monthLabel: {
-    fontSize: 15,
-    fontWeight: "600",
-    color: Colors.textPrimary,
-  },
-  monthRate: {
-    fontSize: 15,
-    fontWeight: "bold",
-  },
-  barBackground: {
-    height: 8,
-    backgroundColor: Colors.inputBackground,
-    borderRadius: 4,
-    overflow: "hidden",
-    marginBottom: 8,
-  },
-  barFill: {
-    height: "100%",
-    borderRadius: 4,
-  },
-  monthDetails: {
-    flexDirection: "row",
-    gap: 16,
-  },
-  detailItem: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 5,
-  },
-  detailDot: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-  },
-  detailText: {
-    fontSize: 12,
-    color: Colors.textSecondary,
-  },
-  divider: {
-    height: 1,
-    backgroundColor: Colors.separator,
-  },
-  emptyContainer: {
-    padding: 20,
-    alignItems: "center",
-  },
-  emptyText: {
-    color: Colors.textMuted,
-    fontSize: 14,
-  },
-});

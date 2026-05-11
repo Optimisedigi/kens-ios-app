@@ -10,6 +10,7 @@ import {
   getCurrentStreak,
   getCompletionRate,
   getHabitStatus,
+  getIsoWeekStart,
   getToday,
 } from "../utils/dateUtils";
 
@@ -153,28 +154,75 @@ export function HabitStrip({
   const anchor = sortedCompletions[0] ?? habit.createdAt;
 
   if (mode === "days") {
-    // Days mode: anchor cell 0 to the first completion (or createdAt if
-    // none). Walk forward day by day; stop at today, then pad with
-    // "future" placeholders so the strip fills `totalCells` and reads
-    // top-left → bottom-right chronologically. Uses getStripDayStatus so
-    // every overdue day stays red until recovery (different from the
-    // single-mark Year/Months/Weeks views).
-    //
-    // For perWeek habits we deliberately **skip** the "filler" days that
-    // sit between two same-week completions in a target-met week. The
-    // user's mental model is "any K days in the week" — gaps between
-    // those K days were never owed, so they shouldn't render at all.
-    // Dropping the cell makes the K completions sit adjacent in the
-    // strip, matching what users expect ("two boxes next to each other
-    // for two-days-a-week").
     const todayStr = getToday();
-    let dateStr = anchor;
-    while (cells.length < totalCells && dateStr <= todayStr) {
-      const status = getStripDayStatus(habit, dateStr);
-      if (status !== "completed_filler") {
-        cells.push({ key: dateStr, state: status });
+
+    if (habit.frequency.kind === "perWeek") {
+      // PerWeek strip: walk ISO week by ISO week (Mon–Sun) from the week
+      // of the first completion (or createdAt if none) to the current
+      // week. Each week emits its actual completions as colored cells,
+      // followed by a single placeholder when the user fell short:
+      //   - past week, target met:    K colored cells
+      //   - past week, shortfall:    `count` colored cells + 1 red cell
+      //   - current week, target met: `count` colored cells
+      //   - current week, shortfall: `count` colored cells + 1 empty cell
+      // The single "miss" placeholder is what the user expected ("did
+      // none last week → 1 red box", not target−count reds).
+      const target = habit.frequency.daysPerWeek;
+      const completionSet = new Set(habit.completions);
+      const firstWeekStart = getIsoWeekStart(
+        sortedCompletions[0] ?? habit.createdAt
+      );
+      const todayWeekStart = getIsoWeekStart(todayStr);
+
+      let wkStart = firstWeekStart;
+      while (wkStart <= todayWeekStart) {
+        // Collect completions inside this Mon–Sun week, in chronological
+        // order, capped at `target` so a user who logs 3 in a 2/week
+        // week doesn't blow up the row — the third tick lives on the
+        // calendar but the strip stays aligned to the cadence promise.
+        const inWeek: string[] = [];
+        for (let i = 0; i < 7; i++) {
+          const d = addDays(wkStart, i);
+          if (completionSet.has(d)) inWeek.push(d);
+        }
+        const shown = inWeek.slice(0, target);
+        for (const d of shown) {
+          cells.push({ key: d, state: "completed" });
+        }
+
+        const isCurrent = wkStart === todayWeekStart;
+        if (isCurrent) {
+          // Current (in-progress) week. Only show a placeholder if we
+          // haven't hit the target yet — the week isn't over so we never
+          // mark it red.
+          if (inWeek.length < target) {
+            cells.push({ key: `pending-${wkStart}`, state: "empty" });
+          }
+        } else if (inWeek.length < target) {
+          // Past week shortfall: one red cell, regardless of how many were
+          // missed (1/2 short and 0/2 short both render as a single miss).
+          cells.push({
+            key: `miss-${wkStart}`,
+            state: "missed_twice",
+          });
+        }
+
+        wkStart = addDays(wkStart, 7);
       }
-      dateStr = addDays(dateStr, 1);
+    } else {
+      // Days mode (interval / weekdays): anchor cell 0 to the first
+      // completion (or createdAt if none). Walk forward day by day;
+      // stop at today, then pad with "future" placeholders. Uses
+      // getStripDayStatus so every overdue day stays red until recovery
+      // (different from the single-mark Year/Months/Weeks views).
+      let dateStr = anchor;
+      while (cells.length < totalCells && dateStr <= todayStr) {
+        const status = getStripDayStatus(habit, dateStr);
+        if (status !== "completed_filler") {
+          cells.push({ key: dateStr, state: status });
+        }
+        dateStr = addDays(dateStr, 1);
+      }
     }
   } else {
     // Frequency mode: one cell per due slot, oldest first, anchored to the

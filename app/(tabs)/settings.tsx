@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useMemo } from "react";
 import {
   View,
   Text,
@@ -12,35 +12,173 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
 import { useHabits } from "../../src/hooks/useHabits";
 import { useNotifications } from "../../src/hooks/useNotifications";
-import { Colors } from "../../src/constants/colors";
-import { FREQUENCY_OPTIONS } from "../../src/types/habit";
-
-const HOUR_OPTIONS = Array.from({ length: 24 }, (_, i) => i);
-
-function formatTime(hour: number, minute: number): string {
-  const period = hour >= 12 ? "PM" : "AM";
-  const displayHour = hour % 12 || 12;
-  const displayMinute = minute.toString().padStart(2, "0");
-  return `${displayHour}:${displayMinute} ${period}`;
-}
-
-function getFrequencyLabel(frequencyDays: number): string {
-  return (
-    FREQUENCY_OPTIONS.find((o) => o.value === frequencyDays)?.label ??
-    `Every ${frequencyDays} days`
-  );
-}
+import { useTheme } from "../../src/hooks/useTheme";
+import { getFrequencyLabel } from "../../src/types/habit";
+import { formatTime } from "../../src/components/TimePicker";
 
 export default function SettingsScreen() {
+  const { colors, themeName, setTheme } = useTheme();
+  const isDark = themeName === "dark";
+  const styles = useMemo(
+    () =>
+      StyleSheet.create({
+        container: {
+          flex: 1,
+          backgroundColor: colors.background,
+        },
+        header: {
+          paddingHorizontal: 20,
+          paddingTop: 8,
+          paddingBottom: 12,
+        },
+        title: {
+          fontSize: 28,
+          fontWeight: "bold",
+          color: colors.textPrimary,
+        },
+        content: {
+          paddingHorizontal: 16,
+          paddingBottom: 32,
+        },
+        sectionTitle: {
+          fontSize: 13,
+          fontWeight: "600",
+          color: colors.textMuted,
+          textTransform: "uppercase",
+          letterSpacing: 0.5,
+          marginTop: 24,
+          marginBottom: 8,
+          marginLeft: 4,
+        },
+        section: {
+          backgroundColor: colors.card,
+          borderRadius: 14,
+          borderWidth: 1,
+          borderColor: colors.cardBorder,
+          overflow: "hidden",
+        },
+        habitRow: {
+          flexDirection: "row",
+          alignItems: "center",
+          justifyContent: "space-between",
+          padding: 14,
+        },
+        habitRowBorder: {
+          borderBottomWidth: 1,
+          borderBottomColor: colors.separator,
+        },
+        habitInfo: {
+          flexDirection: "row",
+          alignItems: "center",
+          gap: 12,
+          flex: 1,
+        },
+        habitEmoji: {
+          fontSize: 24,
+        },
+        habitName: {
+          fontSize: 16,
+          fontWeight: "500",
+          color: colors.textPrimary,
+        },
+        habitMeta: {
+          fontSize: 13,
+          color: colors.textMuted,
+          marginTop: 2,
+        },
+        habitActions: {
+          flexDirection: "row",
+          gap: 8,
+        },
+        editButton: {
+          paddingHorizontal: 12,
+          paddingVertical: 6,
+          borderRadius: 8,
+          backgroundColor: colors.inputBackground,
+        },
+        editText: {
+          color: colors.accent,
+          fontSize: 13,
+          fontWeight: "600",
+        },
+        deleteButton: {
+          paddingHorizontal: 12,
+          paddingVertical: 6,
+          borderRadius: 8,
+          backgroundColor: colors.dangerBackground,
+        },
+        deleteText: {
+          color: colors.danger,
+          fontSize: 13,
+          fontWeight: "600",
+        },
+        emptyRow: {
+          padding: 20,
+          alignItems: "center",
+        },
+        emptyText: {
+          color: colors.textMuted,
+          fontSize: 14,
+        },
+        settingRow: {
+          flexDirection: "row",
+          alignItems: "center",
+          justifyContent: "space-between",
+          padding: 14,
+        },
+        settingLabel: {
+          fontSize: 16,
+          fontWeight: "500",
+          color: colors.textPrimary,
+        },
+        settingDescription: {
+          fontSize: 13,
+          color: colors.textMuted,
+          marginTop: 2,
+        },
+        divider: {
+          height: 1,
+          backgroundColor: colors.separator,
+        },
+        warningRow: {
+          padding: 14,
+        },
+        warningText: {
+          color: colors.warning,
+          fontSize: 13,
+        },
+        aboutRow: {
+          padding: 16,
+          alignItems: "center",
+        },
+        aboutTitle: {
+          fontSize: 18,
+          fontWeight: "bold",
+          color: colors.textPrimary,
+          marginBottom: 6,
+        },
+        aboutDescription: {
+          fontSize: 14,
+          color: colors.textSecondary,
+          textAlign: "center",
+          lineHeight: 20,
+          marginBottom: 12,
+        },
+        aboutVersion: {
+          fontSize: 12,
+          color: colors.textMuted,
+        },
+      }),
+    [colors]
+  );
+
   const router = useRouter();
   const { habits, deleteHabit } = useHabits();
   const {
     settings,
     toggleNotifications,
-    updateSettings,
     permissionGranted,
   } = useNotifications();
-  const [showTimePicker, setShowTimePicker] = useState(false);
 
   const handleDeleteHabit = (id: string, name: string) => {
     Alert.alert(
@@ -88,7 +226,14 @@ export default function SettingsScreen() {
                   <View>
                     <Text style={styles.habitName}>{habit.name}</Text>
                     <Text style={styles.habitMeta}>
-                      {getFrequencyLabel(habit.frequencyDays)} · {habit.completions.length} completions
+                      {getFrequencyLabel(habit.frequency)} ·{" "}
+                      {habit.reminderHour !== null &&
+                      habit.reminderMinute !== null
+                        ? `reminder ${formatTime(
+                            habit.reminderHour,
+                            habit.reminderMinute
+                          )}`
+                        : "no reminder"}
                     </Text>
                   </View>
                 </View>
@@ -111,92 +256,59 @@ export default function SettingsScreen() {
           )}
         </View>
 
+        {/* Appearance */}
+        <Text style={styles.sectionTitle}>Appearance</Text>
+        <View style={styles.section}>
+          <View style={styles.settingRow}>
+            <View style={{ flex: 1, paddingRight: 12 }}>
+              <Text style={styles.settingLabel}>Dark Mode</Text>
+              <Text style={styles.settingDescription}>
+                Switch between dark and light themes.
+              </Text>
+            </View>
+            <Switch
+              value={isDark}
+              onValueChange={(v) => setTheme(v ? "dark" : "light")}
+              trackColor={{
+                false: colors.inputBackground,
+                true: colors.accent,
+              }}
+              thumbColor="#FFFFFF"
+            />
+          </View>
+        </View>
+
         {/* Notifications */}
         <Text style={styles.sectionTitle}>Notifications</Text>
         <View style={styles.section}>
           <View style={styles.settingRow}>
-            <View>
-              <Text style={styles.settingLabel}>Daily Reminders</Text>
+            <View style={{ flex: 1, paddingRight: 12 }}>
+              <Text style={styles.settingLabel}>Habit Reminders</Text>
               <Text style={styles.settingDescription}>
-                Get reminded before you miss twice
+                Each habit reminds you at its own time — set per
+                habit in Edit.
               </Text>
             </View>
             <Switch
               value={settings.enabled}
               onValueChange={toggleNotifications}
               trackColor={{
-                false: Colors.inputBackground,
-                true: Colors.accent,
+                false: colors.inputBackground,
+                true: colors.accent,
               }}
               thumbColor="#FFFFFF"
             />
           </View>
 
-          {settings.enabled && (
+          {settings.enabled && !permissionGranted && (
             <>
               <View style={styles.divider} />
-              <Pressable
-                style={styles.settingRow}
-                onPress={() => setShowTimePicker(!showTimePicker)}
-              >
-                <View>
-                  <Text style={styles.settingLabel}>Reminder Time</Text>
-                  <Text style={styles.settingDescription}>
-                    {formatTime(
-                      settings.reminderHour,
-                      settings.reminderMinute
-                    )}
-                  </Text>
-                </View>
-                <Text style={styles.chevron}>›</Text>
-              </Pressable>
-
-              {showTimePicker && (
-                <>
-                  <View style={styles.divider} />
-                  <ScrollView
-                    horizontal
-                    showsHorizontalScrollIndicator={false}
-                    contentContainerStyle={styles.timePickerContainer}
-                  >
-                    {HOUR_OPTIONS.map((hour) => (
-                      <Pressable
-                        key={hour}
-                        onPress={() =>
-                          updateSettings({ reminderHour: hour })
-                        }
-                        style={[
-                          styles.timeOption,
-                          settings.reminderHour === hour &&
-                            styles.timeOptionSelected,
-                        ]}
-                      >
-                        <Text
-                          style={[
-                            styles.timeOptionText,
-                            settings.reminderHour === hour &&
-                              styles.timeOptionTextSelected,
-                          ]}
-                        >
-                          {formatTime(hour, 0)}
-                        </Text>
-                      </Pressable>
-                    ))}
-                  </ScrollView>
-                </>
-              )}
-
-              {!permissionGranted && (
-                <>
-                  <View style={styles.divider} />
-                  <View style={styles.warningRow}>
-                    <Text style={styles.warningText}>
-                      ⚠️ Notification permissions not granted. Enable
-                      them in your device settings.
-                    </Text>
-                  </View>
-                </>
-              )}
+              <View style={styles.warningRow}>
+                <Text style={styles.warningText}>
+                  ⚠️ Notification permissions not granted. Enable
+                  them in your device settings.
+                </Text>
+              </View>
             </>
           )}
         </View>
@@ -217,178 +329,3 @@ export default function SettingsScreen() {
     </SafeAreaView>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: Colors.background,
-  },
-  header: {
-    paddingHorizontal: 20,
-    paddingTop: 8,
-    paddingBottom: 12,
-  },
-  title: {
-    fontSize: 28,
-    fontWeight: "bold",
-    color: Colors.textPrimary,
-  },
-  content: {
-    paddingHorizontal: 16,
-    paddingBottom: 32,
-  },
-  sectionTitle: {
-    fontSize: 13,
-    fontWeight: "600",
-    color: Colors.textMuted,
-    textTransform: "uppercase",
-    letterSpacing: 0.5,
-    marginTop: 24,
-    marginBottom: 8,
-    marginLeft: 4,
-  },
-  section: {
-    backgroundColor: Colors.card,
-    borderRadius: 14,
-    borderWidth: 1,
-    borderColor: Colors.cardBorder,
-    overflow: "hidden",
-  },
-  habitRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    padding: 14,
-  },
-  habitRowBorder: {
-    borderBottomWidth: 1,
-    borderBottomColor: Colors.separator,
-  },
-  habitInfo: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 12,
-    flex: 1,
-  },
-  habitEmoji: {
-    fontSize: 24,
-  },
-  habitName: {
-    fontSize: 16,
-    fontWeight: "500",
-    color: Colors.textPrimary,
-  },
-  habitMeta: {
-    fontSize: 13,
-    color: Colors.textMuted,
-    marginTop: 2,
-  },
-  habitActions: {
-    flexDirection: "row",
-    gap: 8,
-  },
-  editButton: {
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 8,
-    backgroundColor: Colors.inputBackground,
-  },
-  editText: {
-    color: Colors.accent,
-    fontSize: 13,
-    fontWeight: "600",
-  },
-  deleteButton: {
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 8,
-    backgroundColor: Colors.dangerBackground,
-  },
-  deleteText: {
-    color: Colors.danger,
-    fontSize: 13,
-    fontWeight: "600",
-  },
-  emptyRow: {
-    padding: 20,
-    alignItems: "center",
-  },
-  emptyText: {
-    color: Colors.textMuted,
-    fontSize: 14,
-  },
-  settingRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    padding: 14,
-  },
-  settingLabel: {
-    fontSize: 16,
-    fontWeight: "500",
-    color: Colors.textPrimary,
-  },
-  settingDescription: {
-    fontSize: 13,
-    color: Colors.textMuted,
-    marginTop: 2,
-  },
-  chevron: {
-    fontSize: 24,
-    color: Colors.textMuted,
-    fontWeight: "300",
-  },
-  divider: {
-    height: 1,
-    backgroundColor: Colors.separator,
-  },
-  timePickerContainer: {
-    padding: 12,
-    gap: 8,
-  },
-  timeOption: {
-    paddingHorizontal: 14,
-    paddingVertical: 8,
-    borderRadius: 8,
-    backgroundColor: Colors.inputBackground,
-  },
-  timeOptionSelected: {
-    backgroundColor: Colors.accent,
-  },
-  timeOptionText: {
-    color: Colors.textSecondary,
-    fontSize: 14,
-    fontWeight: "500",
-  },
-  timeOptionTextSelected: {
-    color: Colors.textPrimary,
-  },
-  warningRow: {
-    padding: 14,
-  },
-  warningText: {
-    color: Colors.warning,
-    fontSize: 13,
-  },
-  aboutRow: {
-    padding: 16,
-    alignItems: "center",
-  },
-  aboutTitle: {
-    fontSize: 18,
-    fontWeight: "bold",
-    color: Colors.textPrimary,
-    marginBottom: 6,
-  },
-  aboutDescription: {
-    fontSize: 14,
-    color: Colors.textSecondary,
-    textAlign: "center",
-    lineHeight: 20,
-    marginBottom: 12,
-  },
-  aboutVersion: {
-    fontSize: 12,
-    color: Colors.textMuted,
-  },
-});

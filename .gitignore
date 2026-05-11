@@ -41,3 +41,9 @@ app-example
 # generated native folders
 /ios
 /android
+
+# leftover Pods directory from the original iOS boilerplate template
+kens-ios-app/
+
+# agent planning docs (local-only)
+.gg/

@@ -1,4 +1,15 @@
-export const Colors = {
+/**
+ * Theme palettes. The shape is identical for `darkColors` and
+ * `lightColors` — every key in one MUST exist in the other so the typed
+ * `ThemeColors` contract holds for either palette. Components read from
+ * the active palette via `useTheme()`; never import `Colors` directly.
+ *
+ * Habit accent colors (the per-habit bar/dot color saved on each habit)
+ * are NOT part of the theme — they're chosen from `HABIT_COLOR_PALETTE`
+ * and rendered as-is on either background.
+ */
+
+export const darkColors = {
   // Backgrounds
   background: "#0D0D0D",
   card: "#1A1A1A",
@@ -12,6 +23,7 @@ export const Colors = {
 
   // Calendar cells
   cellCompleted: "#34D399",
+  cellMissedOnce: "#3F3F46", // dark gray — the "black bar" warning (one cadence slot missed)
   cellMissedTwice: "#EF4444",
   cellEmpty: "#1F1F1F",
 
@@ -31,3 +43,48 @@ export const Colors = {
   danger: "#EF4444",
   dangerBackground: "#7F1D1D",
 };
+
+export const lightColors: typeof darkColors = {
+  // Backgrounds
+  background: "#F7F7F8",
+  card: "#FFFFFF",
+  cardBorder: "#E5E7EB",
+
+  // Status colors — kept saturated so they read on either background
+  completed: "#059669",
+  safe: "#9CA3AF",
+  warning: "#D97706",
+  missed: "#DC2626",
+
+  // Calendar cells
+  cellCompleted: "#059669",
+  cellMissedOnce: "#D1D5DB", // light gray — the "warning" cell on a light bg
+  cellMissedTwice: "#DC2626",
+  cellEmpty: "#ECECEE",
+
+  // Text
+  textPrimary: "#0F172A",
+  textSecondary: "#475569",
+  textMuted: "#94A3B8",
+
+  // UI elements
+  accent: "#4F46E5",
+  accentPressed: "#4338CA",
+  separator: "#E5E7EB",
+  tabBar: "#FFFFFF",
+  tabBarBorder: "#E5E7EB",
+  inputBackground: "#F1F5F9",
+  inputBorder: "#CBD5E1",
+  danger: "#DC2626",
+  dangerBackground: "#FEE2E2",
+};
+
+export type ThemeColors = typeof darkColors;
+export type ThemeName = "dark" | "light";
+
+/**
+ * @deprecated Direct import. Prefer `useTheme().colors` so colors update
+ * when the user toggles light/dark mode at runtime. Kept as the dark
+ * palette only to avoid breaking any one-off non-component use.
+ */
+export const Colors = darkColors;

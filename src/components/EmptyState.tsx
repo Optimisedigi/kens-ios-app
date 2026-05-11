@@ -1,12 +1,55 @@
-import React from "react";
+import React, { useMemo } from "react";
 import { View, Text, StyleSheet, Pressable } from "react-native";
-import { Colors } from "../constants/colors";
+import { useTheme } from "../hooks/useTheme";
 
 interface EmptyStateProps {
   onAddHabit: () => void;
 }
 
 export function EmptyState({ onAddHabit }: EmptyStateProps) {
+  const { colors } = useTheme();
+  const styles = useMemo(
+    () =>
+      StyleSheet.create({
+        container: {
+          flex: 1,
+          alignItems: "center",
+          justifyContent: "center",
+          paddingHorizontal: 32,
+          paddingBottom: 80,
+        },
+        emoji: {
+          fontSize: 64,
+          marginBottom: 16,
+        },
+        title: {
+          fontSize: 24,
+          fontWeight: "bold",
+          color: colors.textPrimary,
+          marginBottom: 8,
+        },
+        subtitle: {
+          fontSize: 16,
+          color: colors.textSecondary,
+          textAlign: "center",
+          lineHeight: 24,
+          marginBottom: 32,
+        },
+        button: {
+          backgroundColor: colors.accent,
+          paddingHorizontal: 24,
+          paddingVertical: 14,
+          borderRadius: 12,
+        },
+        buttonText: {
+          color: colors.textPrimary,
+          fontSize: 16,
+          fontWeight: "600",
+        },
+      }),
+    [colors]
+  );
+
   return (
     <View style={styles.container}>
       <Text style={styles.emoji}>🎯</Text>
@@ -21,41 +64,3 @@ export function EmptyState({ onAddHabit }: EmptyStateProps) {
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    alignItems: "center",
-    justifyContent: "center",
-    paddingHorizontal: 32,
-    paddingBottom: 80,
-  },
-  emoji: {
-    fontSize: 64,
-    marginBottom: 16,
-  },
-  title: {
-    fontSize: 24,
-    fontWeight: "bold",
-    color: Colors.textPrimary,
-    marginBottom: 8,
-  },
-  subtitle: {
-    fontSize: 16,
-    color: Colors.textSecondary,
-    textAlign: "center",
-    lineHeight: 24,
-    marginBottom: 32,
-  },
-  button: {
-    backgroundColor: Colors.accent,
-    paddingHorizontal: 24,
-    paddingVertical: 14,
-    borderRadius: 12,
-  },
-  buttonText: {
-    color: Colors.textPrimary,
-    fontSize: 16,
-    fontWeight: "600",
-  },
-});
