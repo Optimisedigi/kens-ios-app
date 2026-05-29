@@ -13,6 +13,16 @@ interface HabitCardProps {
   habit: HabitWithStatus;
   onToggle: (id: string) => void;
   onSaveNote: (id: string, dateStr: string, text: string | null) => void;
+  /**
+   * Long-press handler — marks today as a skipped / off day for the habit
+   * (Feature 4). Optional so callers that don't support skipping can omit it.
+   */
+  onSkip?: (id: string, dateStr: string) => void;
+  /**
+   * Increment handler for measurable habits (Feature 3). Tapping a
+   * measurable habit adds `delta` to today's count instead of toggling.
+   */
+  onIncrement?: (id: string, dateStr: string, delta: number) => void;
 }
 
 function getStatusColor(status: HabitWithStatus['status'], colors: ThemeColors): string {
@@ -52,7 +62,8 @@ function getStatusLabel(habit: HabitWithStatus): string {
   }
 }
 
-export function HabitCard({ habit, onToggle, onSaveNote }: HabitCardProps) {
+export function HabitCard({ habit, onToggle, onSaveNote, onSkip, onIncrement }: HabitCardProps) {
+  const isMeasurable = habit.target !== null;
   const { colors } = useTheme();
   const styles = useMemo(
     () =>
@@ -164,6 +175,19 @@ export function HabitCard({ habit, onToggle, onSaveNote }: HabitCardProps) {
       }),
     ]).start();
 
+    // Measurable habit: tap increments today's count by 1 instead of
+    // toggling. The day flips to "completed" once count >= target.
+    if (isMeasurable && onIncrement) {
+      const nextCount = (habit.counts[today] ?? 0) + 1;
+      if (habit.target !== null && nextCount >= habit.target) {
+        await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+      } else {
+        await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+      }
+      onIncrement(habit.id, today, 1);
+      return;
+    }
+
     // Haptic feedback
     if (habit.status === 'completed_today') {
       await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
@@ -192,6 +216,23 @@ export function HabitCard({ habit, onToggle, onSaveNote }: HabitCardProps) {
 
   const statusColor = getStatusColor(habit.status, colors);
   const isCompleted = habit.status === 'completed_today';
+  const isSkippedToday = habit.skips.includes(today);
+
+  const todayCount = habit.counts[today] ?? 0;
+
+  const handleLongPress = async () => {
+    // For measurable habits, long-press decrements today's count.
+    if (isMeasurable && onIncrement) {
+      if (todayCount > 0) {
+        await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+        onIncrement(habit.id, today, -1);
+      }
+      return;
+    }
+    if (!onSkip) return;
+    await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+    onSkip(habit.id, today);
+  };
 
   const openNote = () => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
@@ -203,11 +244,14 @@ export function HabitCard({ habit, onToggle, onSaveNote }: HabitCardProps) {
       <Animated.View style={{ transform: [{ scale: scaleAnim }] }}>
         <Pressable
           onPress={handlePress}
+          onLongPress={handleLongPress}
+          delayLongPress={400}
           style={[
             styles.card,
             {
-              borderLeftColor: statusColor,
+              borderLeftColor: isSkippedToday ? colors.cellSkipped : statusColor,
               backgroundColor: isCompleted ? colors.card : colors.card,
+              opacity: isSkippedToday ? 0.6 : 1,
             },
           ]}
         >
@@ -216,7 +260,9 @@ export function HabitCard({ habit, onToggle, onSaveNote }: HabitCardProps) {
             <View style={styles.textContainer}>
               <Text style={[styles.name, isCompleted && styles.nameCompleted]}>{habit.name}</Text>
               <Text style={[styles.statusLabel, { color: statusColor }]}>
-                {getStatusLabel(habit)}
+                {isMeasurable
+                  ? `${todayCount}/${habit.target} ${habit.unit ?? ''}`.trim()
+                  : getStatusLabel(habit)}
               </Text>
               {!(
                 (habit.frequency.kind === 'interval' && habit.frequency.days === 1) ||

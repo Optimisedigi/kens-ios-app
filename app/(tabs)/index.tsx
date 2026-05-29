@@ -66,7 +66,16 @@ export default function HomeScreen() {
     [colors],
   );
 
-  const { habits, rawHabits, loading, toggleCompletion, setCompletionNote, refresh } = useHabits();
+  const {
+    habits,
+    rawHabits,
+    loading,
+    toggleCompletion,
+    setCompletionNote,
+    toggleSkip,
+    incrementCount,
+    refresh,
+  } = useHabits();
   const { scheduleHabitNotifications, requestPermissions } = useNotifications();
   const router = useRouter();
 
@@ -121,7 +130,13 @@ export default function HomeScreen() {
           data={habits}
           keyExtractor={(item) => item.id}
           renderItem={({ item }) => (
-            <HabitCard habit={item} onToggle={toggleCompletion} onSaveNote={setCompletionNote} />
+            <HabitCard
+              habit={item}
+              onToggle={toggleCompletion}
+              onSaveNote={setCompletionNote}
+              onSkip={toggleSkip}
+              onIncrement={incrementCount}
+            />
           )}
           contentContainerStyle={styles.listContent}
           showsVerticalScrollIndicator={false}

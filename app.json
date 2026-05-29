@@ -2,7 +2,7 @@
   "expo": {
     "name": "Never Miss Twice",
     "slug": "never-miss-twice",
-    "version": "1.0.3",
+    "version": "1.1.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
     "scheme": "nevermisstwice",
@@ -12,7 +12,12 @@
       "supportsTablet": true,
       "bundleIdentifier": "com.optimisedigital.nevermisstwice",
       "infoPlist": {
-        "ITSAppUsesNonExemptEncryption": false
+        "ITSAppUsesNonExemptEncryption": false,
+        "NSSupportsLiveActivities": true,
+        "NSHealthShareUsageDescription": "Never Miss Twice reads your Health data to auto-complete habits you've linked to a Health metric (e.g. steps, workouts)."
+      },
+      "entitlements": {
+        "com.apple.security.application-groups": ["group.com.optimisedigital.nevermisstwice"]
       }
     },
     "android": {
@@ -52,7 +57,8 @@
           "defaultChannel": "default"
         }
       ],
-      "@react-native-community/datetimepicker"
+      "@react-native-community/datetimepicker",
+      "@bacons/apple-targets"
     ],
     "experiments": {
       "typedRoutes": true,

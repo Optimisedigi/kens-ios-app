@@ -8,6 +8,7 @@ import { MonthlyCalendar } from '../../src/components/MonthlyCalendar';
 import { YearGrid } from '../../src/components/YearGrid';
 import { HabitStrip } from '../../src/components/HabitStrip';
 import { NoteEditorModal } from '../../src/components/NoteEditorModal';
+import { ResilienceCard } from '../../src/components/ResilienceCard';
 import { useTheme } from '../../src/hooks/useTheme';
 import { formatDisplayDate } from '../../src/utils/dateUtils';
 
@@ -256,7 +257,7 @@ export default function StatsScreen() {
     [colors],
   );
 
-  const { habits, rawHabits, setCompletionNote, toggleCompletionForDate } = useHabits();
+  const { habits, rawHabits, setCompletionNote, toggleCompletionForDate, toggleSkip } = useHabits();
   const [selectedId, setSelectedId] = useState<string>(ALL_HABITS);
   const [calendarView, setCalendarView] = useState<CalendarView>('months');
   const [noteDate, setNoteDate] = useState<string | null>(null);
@@ -266,9 +267,30 @@ export default function StatsScreen() {
   // they forgot. Auto-resets to off whenever the selected habit changes
   // so the destructive action can't quietly persist across habits.
   const [backfillMode, setBackfillMode] = useState(false);
+  // Skip mode: when on, a day tap toggles a skip / off-day instead of a
+  // completion. Mutually exclusive with backfill mode; both reset when the
+  // selected habit changes.
+  const [skipMode, setSkipMode] = useState(false);
   React.useEffect(() => {
     setBackfillMode(false);
+    setSkipMode(false);
   }, [selectedId]);
+
+  // Resolve a day tap to the active action: skip > backfill > note.
+  const handleDayPress = React.useCallback(
+    (habitId: string, d: string) => {
+      if (skipMode) {
+        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+        toggleSkip(habitId, d);
+      } else if (backfillMode) {
+        Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+        toggleCompletionForDate(habitId, d);
+      } else {
+        setNoteDate(d);
+      }
+    },
+    [skipMode, backfillMode, toggleSkip, toggleCompletionForDate],
+  );
 
   const isAllView = selectedId === ALL_HABITS;
   const selectedIndex = isAllView ? -1 : habits.findIndex((h) => h.id === selectedId);
@@ -406,6 +428,9 @@ export default function StatsScreen() {
                 </View>
               </View>
 
+              {/* Resilience Score + recovery analytics (Feature 6) */}
+              <ResilienceCard habit={selectedRawHabit} accent={selectedRawHabit.color} />
+
               {/* Calendar view toggle */}
               <View style={styles.toggleRow}>
                 <Pressable
@@ -470,6 +495,35 @@ export default function StatsScreen() {
                     onValueChange={(next) => {
                       Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
                       setBackfillMode(next);
+                      if (next) setSkipMode(false);
+                    }}
+                    trackColor={{
+                      false: colors.inputBackground,
+                      true: colors.accent,
+                    }}
+                    thumbColor="#FFFFFF"
+                  />
+                </View>
+              )}
+
+              {/* Skip toggle — mark a day as an explicit off / not-due day
+                 (vacation, sick). A skipped day doesn't break the streak. */}
+              {(calendarView === 'weeks' || calendarView === 'months') && (
+                <View style={styles.backfillRow}>
+                  <View style={styles.backfillTextWrap}>
+                    <Text style={styles.backfillLabel}>Skip mode</Text>
+                    <Text style={styles.backfillHelper}>
+                      {skipMode
+                        ? 'Tap a day to mark / unmark it as an off day.'
+                        : "Tap a day to mark it off. Off days don't break your streak."}
+                    </Text>
+                  </View>
+                  <Switch
+                    value={skipMode}
+                    onValueChange={(next) => {
+                      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                      setSkipMode(next);
+                      if (next) setBackfillMode(false);
                     }}
                     trackColor={{
                       false: colors.inputBackground,
@@ -487,29 +541,15 @@ export default function StatsScreen() {
                     <CalendarGrid
                       habit={selectedRawHabit}
                       weeks={8}
-                      backfillMode={backfillMode}
-                      onDayPress={(d) => {
-                        if (backfillMode) {
-                          Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-                          toggleCompletionForDate(selectedRawHabit.id, d);
-                        } else {
-                          setNoteDate(d);
-                        }
-                      }}
+                      backfillMode={backfillMode || skipMode}
+                      onDayPress={(d) => handleDayPress(selectedRawHabit.id, d)}
                     />
                   </>
                 ) : calendarView === 'months' ? (
                   <MonthlyCalendar
                     habit={selectedRawHabit}
-                    backfillMode={backfillMode}
-                    onDayPress={(d) => {
-                      if (backfillMode) {
-                        Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-                        toggleCompletionForDate(selectedRawHabit.id, d);
-                      } else {
-                        setNoteDate(d);
-                      }
-                    }}
+                    backfillMode={backfillMode || skipMode}
+                    onDayPress={(d) => handleDayPress(selectedRawHabit.id, d)}
                   />
                 ) : (
                   <YearGrid habit={selectedRawHabit} onDayPress={setNoteDate} />

@@ -52,6 +52,71 @@ export interface Habit {
    * is strictly past `endDate`.
    */
   endDate: string | null;
+  /**
+   * Feature 3 — measurable habits. When `target` is non-null the habit is
+   * "measurable": a day is complete once that day's `counts` value reaches
+   * `target`. `unit` is the display noun (e.g. "glasses", "pages"). When
+   * `target` is null the habit is a plain boolean habit (current behaviour)
+   * and `unit` is null.
+   */
+  target: number | null;
+  unit: string | null;
+  /**
+   * Per-day measured amount (YYYY-MM-DD → count). Source of truth for how
+   * much was logged on a measurable day. `completions` stays in sync: a
+   * date appears in `completions` iff that day reached its threshold, so
+   * the entire boolean streak/calendar engine keeps working unchanged.
+   * Empty `{}` for boolean habits.
+   */
+  counts: Record<string, number>;
+  /**
+   * Feature 4 — skip / off day. YYYY-MM-DD dates the user explicitly marked
+   * "off" (vacation, sick). A skipped due-day is treated as "not due": it
+   * neither advances nor breaks a streak and is excluded from completion-rate
+   * denominators. Mutually exclusive with a completion on the same day.
+   */
+  skips: string[];
+  /**
+   * Feature 7 — Apple Health auto-completion. When non-null the habit is
+   * linked to a Health metric (e.g. 'steps', 'workouts', 'mindfulMinutes',
+   * 'water'); the daily Health total is compared against `target` (Feature 3)
+   * to auto-complete the day. `null` = not linked (default).
+   */
+  healthMetric: string | null;
+}
+
+/**
+ * Apple Health metrics a habit can auto-complete from (Feature 7). The
+ * string values are stored in `Habit.healthMetric`; the health sync hook
+ * maps each to a HealthKit query.
+ */
+export const HEALTH_METRICS = [
+  { value: 'steps', label: 'Steps' },
+  { value: 'workouts', label: 'Workouts' },
+  { value: 'mindfulMinutes', label: 'Mindful minutes' },
+  { value: 'water', label: 'Water' },
+] as const;
+
+export type HealthMetric = (typeof HEALTH_METRICS)[number]['value'];
+
+/** True iff `dateStr` is explicitly marked as a skipped / off day. */
+export function isSkipped(habit: Habit, dateStr: string): boolean {
+  return habit.skips.includes(dateStr);
+}
+
+/**
+ * True iff the habit counts as "done" on `dateStr`.
+ *  - Measurable habit (`target` non-null): the day's count reached `target`.
+ *  - Boolean habit: the date is in `completions`.
+ * Because `incrementCount` writes the date into `completions` exactly when
+ * the threshold is reached, both checks agree — this helper exists so call
+ * sites that care about target semantics read clearly.
+ */
+export function isDayComplete(habit: Habit, dateStr: string): boolean {
+  if (habit.target !== null) {
+    return (habit.counts[dateStr] ?? 0) >= habit.target;
+  }
+  return habit.completions.includes(dateStr);
 }
 
 /** Curated palette for habit colors — readable on dark background */

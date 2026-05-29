@@ -135,7 +135,14 @@ export function HabitStrip({
   // Build the cells array
   type Cell = {
     key: string;
-    state: 'completed' | 'completed_filler' | 'missed_once' | 'missed_twice' | 'empty' | 'future';
+    state:
+      | 'completed'
+      | 'completed_filler'
+      | 'missed_once'
+      | 'missed_twice'
+      | 'skipped'
+      | 'empty'
+      | 'future';
   };
   const cells: Cell[] = [];
 
@@ -293,7 +300,14 @@ function Cell({
   state,
   color,
 }: {
-  state: 'completed' | 'completed_filler' | 'missed_once' | 'missed_twice' | 'empty' | 'future';
+  state:
+    | 'completed'
+    | 'completed_filler'
+    | 'missed_once'
+    | 'missed_twice'
+    | 'skipped'
+    | 'empty'
+    | 'future';
   color: string;
 }) {
   const { colors } = useTheme();
@@ -331,6 +345,9 @@ function Cell({
       break;
     case 'missed_twice':
       backgroundColor = colors.cellMissedTwice;
+      break;
+    case 'skipped':
+      backgroundColor = colors.cellSkipped;
       break;
     case 'future':
     case 'empty':

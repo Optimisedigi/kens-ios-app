@@ -8,6 +8,8 @@ import {
   deleteHabit as deleteHabitStorage,
   toggleCompletion as toggleCompletionStorage,
   toggleCompletionForDate as toggleCompletionForDateStorage,
+  toggleSkipForDate as toggleSkipForDateStorage,
+  incrementCount as incrementCountStorage,
   setCompletionNote as setCompletionNoteStorage,
 } from '../storage/habitStorage';
 import { getHabitWithStatus } from '../utils/dateUtils';
@@ -63,7 +65,16 @@ export function useHabits() {
       updates: Partial<
         Pick<
           Habit,
-          'name' | 'emoji' | 'frequency' | 'color' | 'reminderHour' | 'reminderMinute' | 'endDate'
+          | 'name'
+          | 'emoji'
+          | 'frequency'
+          | 'color'
+          | 'reminderHour'
+          | 'reminderMinute'
+          | 'endDate'
+          | 'target'
+          | 'unit'
+          | 'healthMetric'
         >
       >,
     ) => {
@@ -88,6 +99,16 @@ export function useHabits() {
     setHabits(updated);
   }, []);
 
+  const toggleSkip = useCallback(async (id: string, dateStr: string) => {
+    const updated = await toggleSkipForDateStorage(id, dateStr);
+    setHabits(updated);
+  }, []);
+
+  const incrementCount = useCallback(async (id: string, dateStr: string, delta: number) => {
+    const updated = await incrementCountStorage(id, dateStr, delta);
+    setHabits(updated);
+  }, []);
+
   const setCompletionNote = useCallback(
     async (id: string, dateStr: string, text: string | null) => {
       const updated = await setCompletionNoteStorage(id, dateStr, text);
@@ -105,6 +126,8 @@ export function useHabits() {
     deleteHabit,
     toggleCompletion,
     toggleCompletionForDate,
+    toggleSkip,
+    incrementCount,
     setCompletionNote,
     refresh,
   };

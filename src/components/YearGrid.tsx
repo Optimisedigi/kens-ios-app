@@ -21,7 +21,7 @@ const CELL_GAP = 3;
 // the dark card background — the all-habits strip stays as-is.
 const EMPTY_CELL = '#2E2E2E';
 
-type CellState = 'completed' | 'missed_twice' | 'empty' | 'future';
+type CellState = 'completed' | 'missed_twice' | 'skipped' | 'empty' | 'future';
 
 interface Cell {
   dateStr: string;
@@ -68,6 +68,8 @@ function getCellColor(state: CellState, habitColor: string, colors: ThemeColors)
       return habitColor;
     case 'missed_twice':
       return colors.cellMissedTwice;
+    case 'skipped':
+      return colors.cellSkipped;
     case 'future':
     case 'empty':
     default:

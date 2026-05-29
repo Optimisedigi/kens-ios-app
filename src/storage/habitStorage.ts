@@ -19,7 +19,16 @@ const NOTIFICATION_SETTINGS_KEY = 'notification_settings';
  */
 interface StoredHabit extends Omit<
   Habit,
-  'frequency' | 'reminderHour' | 'reminderMinute' | 'notes' | 'endDate'
+  | 'frequency'
+  | 'reminderHour'
+  | 'reminderMinute'
+  | 'notes'
+  | 'endDate'
+  | 'target'
+  | 'unit'
+  | 'counts'
+  | 'skips'
+  | 'healthMetric'
 > {
   frequency?: HabitFrequency;
   frequencyDays?: number;
@@ -27,6 +36,11 @@ interface StoredHabit extends Omit<
   reminderMinute?: number | null;
   notes?: Record<string, string>;
   endDate?: string | null;
+  target?: number | null;
+  unit?: string | null;
+  counts?: Record<string, number>;
+  skips?: string[];
+  healthMetric?: string | null;
 }
 
 /** Load all habits from storage (migrates legacy `frequencyDays` and missing `color`) */
@@ -82,6 +96,14 @@ export async function loadHabits(): Promise<Habit[]> {
       // `needsSave` — we'll persist it the next time anything else
       // changes.
       const endDate = typeof h.endDate === 'string' || h.endDate === null ? h.endDate : null;
+      // New optional fields (Features 3/4/7). Default without flipping
+      // `needsSave` for fields that are absent on legacy habits — they get
+      // persisted the next time anything else changes.
+      const target = typeof h.target === 'number' ? h.target : null;
+      const unit = typeof h.unit === 'string' ? h.unit : null;
+      const counts = h.counts && typeof h.counts === 'object' ? h.counts : {};
+      const skips = Array.isArray(h.skips) ? h.skips : [];
+      const healthMetric = typeof h.healthMetric === 'string' ? h.healthMetric : null;
       return {
         id: h.id,
         name: h.name,
@@ -94,6 +116,11 @@ export async function loadHabits(): Promise<Habit[]> {
         reminderHour,
         reminderMinute,
         endDate,
+        target,
+        unit,
+        counts,
+        skips,
+        healthMetric,
       };
     });
     // ---------------------------------------------------------------
@@ -366,6 +393,8 @@ export async function addHabit(
   reminderHour: number | null,
   reminderMinute: number | null,
   endDate: string | null,
+  target: number | null = null,
+  unit: string | null = null,
 ): Promise<Habit[]> {
   const habits = await loadHabits();
   const newHabit: Habit = {
@@ -380,6 +409,11 @@ export async function addHabit(
     reminderHour,
     reminderMinute,
     endDate,
+    target,
+    unit,
+    counts: {},
+    skips: [],
+    healthMetric: null,
   };
   const updated = [...habits, newHabit];
   await saveHabits(updated);
@@ -392,12 +426,100 @@ export async function updateHabit(
   updates: Partial<
     Pick<
       Habit,
-      'name' | 'emoji' | 'frequency' | 'color' | 'reminderHour' | 'reminderMinute' | 'endDate'
+      | 'name'
+      | 'emoji'
+      | 'frequency'
+      | 'color'
+      | 'reminderHour'
+      | 'reminderMinute'
+      | 'endDate'
+      | 'target'
+      | 'unit'
+      | 'healthMetric'
     >
   >,
 ): Promise<Habit[]> {
   const habits = await loadHabits();
-  const updated = habits.map((h) => (h.id === id ? { ...h, ...updates } : h));
+  const updated = habits.map((h) => {
+    if (h.id !== id) return h;
+    const next = { ...h, ...updates };
+    // When a habit is switched back to boolean (target cleared) drop the
+    // unit and any partial counts so stale measurable state can't linger.
+    if ('target' in updates && updates.target === null) {
+      next.unit = null;
+      next.counts = {};
+    }
+    return next;
+  });
+  await saveHabits(updated);
+  return updated;
+}
+
+/**
+ * Toggle a skip / off-day for `dateStr`. Skipping is mutually exclusive
+ * with a completion on the same day: marking a day skipped removes any
+ * completion (and its count) for that day; un-skipping just clears the
+ * skip. Never moves `createdAt`.
+ */
+export async function toggleSkipForDate(id: string, dateStr: string): Promise<Habit[]> {
+  const habits = await loadHabits();
+  const updated = habits.map((h) => {
+    if (h.id !== id) return h;
+    const alreadySkipped = h.skips.includes(dateStr);
+    if (alreadySkipped) {
+      return { ...h, skips: h.skips.filter((d) => d !== dateStr) };
+    }
+    const nextCounts = { ...h.counts };
+    delete nextCounts[dateStr];
+    return {
+      ...h,
+      skips: [...h.skips, dateStr].sort(),
+      completions: h.completions.filter((d) => d !== dateStr),
+      counts: nextCounts,
+    };
+  });
+  await saveHabits(updated);
+  return updated;
+}
+
+/**
+ * Increment (or decrement) a measurable habit's count for `dateStr` by
+ * `delta`, clamped at 0. Keeps `completions` in sync with the target
+ * threshold: the date is present in `completions` iff the day's count is
+ * at or above `target`. A skip on the same day is cleared when a positive
+ * count is recorded. No-op for boolean habits (`target === null`).
+ */
+export async function incrementCount(id: string, dateStr: string, delta: number): Promise<Habit[]> {
+  const habits = await loadHabits();
+  const updated = habits.map((h) => {
+    if (h.id !== id || h.target === null) return h;
+    const current = h.counts[dateStr] ?? 0;
+    const next = Math.max(0, current + delta);
+    const nextCounts = { ...h.counts };
+    if (next === 0) {
+      delete nextCounts[dateStr];
+    } else {
+      nextCounts[dateStr] = next;
+    }
+    const reached = next >= h.target;
+    const hasCompletion = h.completions.includes(dateStr);
+    let nextCompletions = h.completions;
+    if (reached && !hasCompletion) {
+      nextCompletions = [...h.completions, dateStr].sort();
+    } else if (!reached && hasCompletion) {
+      nextCompletions = h.completions.filter((d) => d !== dateStr);
+    }
+    // Logging on a day clears any skip for that day.
+    const nextSkips = next > 0 ? h.skips.filter((d) => d !== dateStr) : h.skips;
+    const nextCreatedAt = next > 0 && dateStr < h.createdAt ? dateStr : h.createdAt;
+    return {
+      ...h,
+      counts: nextCounts,
+      completions: nextCompletions,
+      skips: nextSkips,
+      createdAt: nextCreatedAt,
+    };
+  });
   await saveHabits(updated);
   return updated;
 }

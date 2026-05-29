@@ -1,5 +1,14 @@
-import React, { useMemo } from 'react';
-import { View, Text, StyleSheet, ScrollView, Pressable, Switch, Alert } from 'react-native';
+import React, { useEffect, useMemo, useState } from 'react';
+import {
+  Platform,
+  View,
+  Text,
+  StyleSheet,
+  ScrollView,
+  Pressable,
+  Switch,
+  Alert,
+} from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import Constants from 'expo-constants';
@@ -8,6 +17,8 @@ import { useNotifications } from '../../src/hooks/useNotifications';
 import { useTheme } from '../../src/hooks/useTheme';
 import { getFrequencyLabel } from '../../src/types/habit';
 import { formatTime } from '../../src/components/TimePicker';
+import { isLiveActivityEnabled, setLiveActivityEnabled } from '../../src/utils/liveActivity';
+import { useHealthSync } from '../../src/hooks/useHealthSync';
 
 export default function SettingsScreen() {
   const { colors, themeName, setTheme } = useTheme();
@@ -166,8 +177,13 @@ export default function SettingsScreen() {
   );
 
   const router = useRouter();
-  const { habits, deleteHabit } = useHabits();
+  const { habits, deleteHabit, refresh } = useHabits();
   const { settings, toggleNotifications, permissionGranted } = useNotifications();
+  const [liveActivity, setLiveActivity] = useState(false);
+  useEffect(() => {
+    isLiveActivityEnabled().then(setLiveActivity);
+  }, []);
+  const { permission: healthPermission } = useHealthSync(refresh);
 
   const handleDeleteHabit = (id: string, name: string) => {
     Alert.alert(
@@ -287,6 +303,68 @@ export default function SettingsScreen() {
             </>
           )}
         </View>
+
+        {/* Live Activity (iOS only) */}
+        {Platform.OS === 'ios' && (
+          <>
+            <Text style={styles.sectionTitle}>Live Activity</Text>
+            <View style={styles.section}>
+              <View style={styles.settingRow}>
+                <View style={{ flex: 1, paddingRight: 12 }}>
+                  <Text style={styles.settingLabel}>Streak-at-risk Live Activity</Text>
+                  <Text style={styles.settingDescription}>
+                    Show a Lock Screen / Dynamic Island reminder when a streak is about to break.
+                    Same-day only.
+                  </Text>
+                </View>
+                <Switch
+                  value={liveActivity}
+                  onValueChange={(v) => {
+                    setLiveActivity(v);
+                    void setLiveActivityEnabled(v);
+                  }}
+                  trackColor={{ false: colors.inputBackground, true: colors.accent }}
+                  thumbColor="#FFFFFF"
+                />
+              </View>
+            </View>
+          </>
+        )}
+
+        {/* Apple Health (iOS only) */}
+        {Platform.OS === 'ios' && healthPermission !== 'unavailable' && (
+          <>
+            <Text style={styles.sectionTitle}>Apple Health</Text>
+            <View style={styles.section}>
+              <View style={styles.settingRow}>
+                <View style={{ flex: 1, paddingRight: 12 }}>
+                  <Text style={styles.settingLabel}>Auto-complete from Health</Text>
+                  <Text style={styles.settingDescription}>
+                    Link a measurable habit to a Health metric in Edit. The day auto-completes when
+                    your Health total hits the goal.
+                  </Text>
+                </View>
+                <Text style={styles.settingDescription}>
+                  {healthPermission === 'granted'
+                    ? '✓ Allowed'
+                    : healthPermission === 'denied'
+                      ? '⚠️ Denied'
+                      : '—'}
+                </Text>
+              </View>
+              {healthPermission === 'denied' && (
+                <>
+                  <View style={styles.divider} />
+                  <View style={styles.warningRow}>
+                    <Text style={styles.warningText}>
+                      ⚠️ Health access denied. Enable it in Settings → Privacy → Health.
+                    </Text>
+                  </View>
+                </>
+              )}
+            </View>
+          </>
+        )}
 
         {/* About */}
         <Text style={styles.sectionTitle}>About</Text>

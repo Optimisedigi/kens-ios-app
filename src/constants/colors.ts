@@ -26,6 +26,7 @@ export const darkColors = {
   cellMissedOnce: '#3F3F46', // dark gray — the "black bar" warning (one cadence slot missed)
   cellMissedTwice: '#EF4444',
   cellEmpty: '#1F1F1F',
+  cellSkipped: '#2D3748', // muted slate — an explicit "off" day (Feature 4)
 
   // Text
   textPrimary: '#FFFFFF',
@@ -61,6 +62,7 @@ export const lightColors: typeof darkColors = {
   cellMissedOnce: '#D1D5DB', // light gray — the "warning" cell on a light bg
   cellMissedTwice: '#DC2626',
   cellEmpty: '#ECECEE',
+  cellSkipped: '#CBD5E1', // muted slate — an explicit "off" day (Feature 4)
 
   // Text
   textPrimary: '#0F172A',

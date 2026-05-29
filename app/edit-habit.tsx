@@ -11,6 +11,7 @@ import {
   Keyboard,
   InputAccessoryView,
   Modal,
+  Switch,
 } from 'react-native';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { useRouter, useLocalSearchParams } from 'expo-router';
@@ -27,6 +28,7 @@ import {
   PER_WEEK_FREQUENCY_OPTIONS,
   WEEKDAY_LABELS,
   WEEKDAY_FULL,
+  HEALTH_METRICS,
 } from '../src/types/habit';
 import { addDays, formatDate, getToday, parseDate } from '../src/utils/dateUtils';
 
@@ -96,7 +98,16 @@ interface EditHabitFormProps {
     updates: Partial<
       Pick<
         HabitWithStatus,
-        'name' | 'emoji' | 'frequency' | 'color' | 'reminderHour' | 'reminderMinute' | 'endDate'
+        | 'name'
+        | 'emoji'
+        | 'frequency'
+        | 'color'
+        | 'reminderHour'
+        | 'reminderMinute'
+        | 'endDate'
+        | 'target'
+        | 'unit'
+        | 'healthMetric'
       >
     >,
   ) => Promise<void>;
@@ -127,6 +138,41 @@ function EditHabitForm({ habit, updateHabit }: EditHabitFormProps) {
           color: colors.textMuted,
           marginBottom: 6,
           marginTop: 2,
+        },
+        measurableHeaderRow: {
+          flexDirection: 'row',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          marginTop: 8,
+          marginBottom: 8,
+        },
+        measurableRow: {
+          flexDirection: 'row',
+          gap: 10,
+          marginBottom: 16,
+        },
+        measurableTargetInput: {
+          width: 80,
+          backgroundColor: colors.inputBackground,
+          borderRadius: 12,
+          paddingHorizontal: 16,
+          fontSize: 18,
+          color: colors.textPrimary,
+          borderWidth: 1,
+          borderColor: colors.inputBorder,
+          minHeight: 52,
+          textAlign: 'center',
+        },
+        measurableUnitInput: {
+          flex: 1,
+          backgroundColor: colors.inputBackground,
+          borderRadius: 12,
+          paddingHorizontal: 16,
+          fontSize: 18,
+          color: colors.textPrimary,
+          borderWidth: 1,
+          borderColor: colors.inputBorder,
+          minHeight: 52,
         },
         nameRow: {
           flexDirection: 'row',
@@ -395,6 +441,12 @@ function EditHabitForm({ habit, updateHabit }: EditHabitFormProps) {
   const [endDateDraft, setEndDateDraft] = useState<Date>(() =>
     parseDate(habit.endDate ?? addDays(getToday(), 7)),
   );
+  // Measurable habit (Feature 3): seed from the existing habit.
+  const [measurable, setMeasurable] = useState(habit.target !== null);
+  const [targetText, setTargetText] = useState(habit.target !== null ? String(habit.target) : '8');
+  const [unitText, setUnitText] = useState(habit.unit ?? '');
+  // Apple Health link (Feature 7): only meaningful for measurable habits.
+  const [healthMetric, setHealthMetric] = useState<string | null>(habit.healthMetric ?? null);
 
   const toggleWeekday = (day: number) => {
     setSelectedWeekdays((prev) =>
@@ -416,10 +468,17 @@ function EditHabitForm({ habit, updateHabit }: EditHabitFormProps) {
     };
   };
 
+  const parsedTarget = (): number | null => {
+    if (!measurable) return null;
+    const n = Math.floor(Number(targetText));
+    return Number.isFinite(n) && n > 0 ? n : null;
+  };
+
   const handleSave = async () => {
     const trimmed = name.trim();
     if (!trimmed) return;
 
+    const target = parsedTarget();
     await updateHabit(habit.id, {
       name: trimmed,
       emoji: selectedEmoji,
@@ -428,13 +487,19 @@ function EditHabitForm({ habit, updateHabit }: EditHabitFormProps) {
       reminderHour,
       reminderMinute,
       endDate,
+      target,
+      unit: measurable ? unitText.trim() || null : null,
+      // Health link only applies to measurable habits with a target.
+      healthMetric: measurable && target !== null ? healthMetric : null,
     });
     await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
     router.back();
   };
 
   const canSave =
-    name.trim().length > 0 && (cadenceKind !== 'weekdays' || selectedWeekdays.length > 0);
+    name.trim().length > 0 &&
+    (cadenceKind !== 'weekdays' || selectedWeekdays.length > 0) &&
+    (!measurable || parsedTarget() !== null);
 
   // End-date picker minimum = tomorrow. (Editing an existing habit whose
   // end date is already today/past is allowed via clearing — we don't let
@@ -631,6 +696,90 @@ function EditHabitForm({ habit, updateHabit }: EditHabitFormProps) {
                   </Pressable>
                 );
               })}
+            </View>
+          </>
+        )}
+
+        {/* Measurable habit (optional) */}
+        <View style={styles.measurableHeaderRow}>
+          <Text style={[styles.label, { marginBottom: 0 }]}>Measurable</Text>
+          <Switch
+            value={measurable}
+            onValueChange={(next) => {
+              Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+              setMeasurable(next);
+            }}
+            trackColor={{ false: colors.inputBackground, true: colors.accent }}
+            thumbColor="#FFFFFF"
+          />
+        </View>
+        {measurable && (
+          <View style={styles.measurableRow}>
+            <TextInput
+              style={styles.measurableTargetInput}
+              placeholder="8"
+              placeholderTextColor={colors.textMuted}
+              value={targetText}
+              onChangeText={setTargetText}
+              keyboardType="number-pad"
+              maxLength={5}
+              inputAccessoryViewID={Platform.OS === 'ios' ? KEYBOARD_ACCESSORY_ID : undefined}
+            />
+            <TextInput
+              style={styles.measurableUnitInput}
+              placeholder="unit (e.g. glasses)"
+              placeholderTextColor={colors.textMuted}
+              value={unitText}
+              onChangeText={setUnitText}
+              maxLength={20}
+              inputAccessoryViewID={Platform.OS === 'ios' ? KEYBOARD_ACCESSORY_ID : undefined}
+            />
+          </View>
+        )}
+
+        {/* Apple Health link (iOS, measurable only) */}
+        {Platform.OS === 'ios' && measurable && (
+          <>
+            <Text style={styles.subLabel}>Link to Apple Health (optional)</Text>
+            <View style={styles.frequencyRow}>
+              <Pressable
+                onPress={() => {
+                  Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                  setHealthMetric(null);
+                }}
+                style={[styles.numberPill, healthMetric === null && styles.frequencyPillSelected]}
+              >
+                <Text
+                  style={[
+                    styles.frequencyPillText,
+                    healthMetric === null && styles.frequencyPillTextSelected,
+                  ]}
+                >
+                  None
+                </Text>
+              </Pressable>
+              {HEALTH_METRICS.map((m) => (
+                <Pressable
+                  key={m.value}
+                  onPress={() => {
+                    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                    setHealthMetric(m.value);
+                  }}
+                  style={[
+                    styles.numberPill,
+                    healthMetric === m.value && styles.frequencyPillSelected,
+                  ]}
+                >
+                  <Text
+                    style={[
+                      styles.frequencyPillText,
+                      healthMetric === m.value && styles.frequencyPillTextSelected,
+                    ]}
+                  >
+                    {m.label}
+                  </Text>
+                </Pressable>
+              ))}
             </View>
           </>
         )}

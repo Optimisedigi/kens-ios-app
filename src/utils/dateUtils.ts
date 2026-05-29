@@ -1,4 +1,4 @@
-import { Habit, HabitStatus, HabitWithStatus } from '../types/habit';
+import { Habit, HabitStatus, HabitWithStatus, isSkipped } from '../types/habit';
 
 /** Returns today's date as YYYY-MM-DD string in local timezone */
 export function getToday(): string {
@@ -35,8 +35,34 @@ export function getYesterday(): string {
   return formatDate(date);
 }
 
-/** True iff `dateStr` is one of the habit's selected weekdays. */
+/** Count of skipped days strictly inside the open interval (`fromStr`, `toStr`). */
+function skipsBetweenExclusive(habit: Habit, fromStr: string, toStr: string): number {
+  if (habit.skips.length === 0) return 0;
+  const lo = fromStr < toStr ? fromStr : toStr;
+  const hi = fromStr < toStr ? toStr : fromStr;
+  let n = 0;
+  for (const d of habit.skips) {
+    if (d > lo && d < hi) n++;
+  }
+  return n;
+}
+
+/**
+ * Effective gap (in cadence days) between two dates for an interval habit:
+ * the raw day distance minus skipped days that fall between them, so an
+ * off day pauses the cadence clock instead of advancing toward a miss.
+ */
+function effectiveIntervalGap(habit: Habit, fromStr: string, toStr: string): number {
+  return getDaysBetween(fromStr, toStr) - skipsBetweenExclusive(habit, fromStr, toStr);
+}
+
+/**
+ * True iff `dateStr` is a "due day" for the habit — i.e. one of its
+ * selected weekdays (for weekday cadences) AND not explicitly skipped.
+ * A skipped day is treated as not due everywhere a cadence is walked.
+ */
 function isDueOnWeekday(habit: Habit, dateStr: string): boolean {
+  if (isSkipped(habit, dateStr)) return false;
   if (habit.frequency.kind !== 'weekdays') return true;
   const weekday = parseDate(dateStr).getDay();
   return habit.frequency.weekdays.includes(weekday);
@@ -48,35 +74,60 @@ function isDueOnWeekday(habit: Habit, dateStr: string): boolean {
  * (which the storage layer guards against).
  */
 function lastDueOnOrBefore(habit: Habit, dateStr: string): string | null {
-  if (habit.frequency.kind !== 'weekdays') return dateStr;
+  if (habit.frequency.kind !== 'weekdays') {
+    // Walk back past skipped days to the most recent non-skipped day.
+    let cur = dateStr;
+    for (let i = 0; i < 366; i++) {
+      if (!isSkipped(habit, cur)) return cur;
+      cur = addDays(cur, -1);
+      if (cur < habit.createdAt) return null;
+    }
+    return cur;
+  }
   const set = new Set(habit.frequency.weekdays);
   let cur = dateStr;
-  for (let i = 0; i < 7; i++) {
-    if (set.has(parseDate(cur).getDay())) return cur;
+  // Scan up to a year back so a long skip stretch doesn't falsely report
+  // "no due day" (the 7-day scan only covered one week of weekdays).
+  for (let i = 0; i < 366; i++) {
+    if (set.has(parseDate(cur).getDay()) && !isSkipped(habit, cur)) return cur;
     cur = addDays(cur, -1);
   }
   return null;
 }
 
-/** Returns the next due weekday strictly after `dateStr`. */
+/** Returns the next due weekday strictly after `dateStr` (skips excluded). */
 function nextDueAfter(habit: Habit, dateStr: string): string | null {
-  if (habit.frequency.kind !== 'weekdays') return addDays(dateStr, 1);
+  if (habit.frequency.kind !== 'weekdays') {
+    let cur = addDays(dateStr, 1);
+    for (let i = 0; i < 366; i++) {
+      if (!isSkipped(habit, cur)) return cur;
+      cur = addDays(cur, 1);
+    }
+    return cur;
+  }
   const set = new Set(habit.frequency.weekdays);
   let cur = addDays(dateStr, 1);
-  for (let i = 0; i < 7; i++) {
-    if (set.has(parseDate(cur).getDay())) return cur;
+  for (let i = 0; i < 366; i++) {
+    if (set.has(parseDate(cur).getDay()) && !isSkipped(habit, cur)) return cur;
     cur = addDays(cur, 1);
   }
   return null;
 }
 
-/** Returns the previous due weekday strictly before `dateStr`. */
+/** Returns the previous due weekday strictly before `dateStr` (skips excluded). */
 function prevDueBefore(habit: Habit, dateStr: string): string | null {
-  if (habit.frequency.kind !== 'weekdays') return addDays(dateStr, -1);
+  if (habit.frequency.kind !== 'weekdays') {
+    let cur = addDays(dateStr, -1);
+    for (let i = 0; i < 366; i++) {
+      if (!isSkipped(habit, cur)) return cur;
+      cur = addDays(cur, -1);
+    }
+    return cur;
+  }
   const set = new Set(habit.frequency.weekdays);
   let cur = addDays(dateStr, -1);
-  for (let i = 0; i < 7; i++) {
-    if (set.has(parseDate(cur).getDay())) return cur;
+  for (let i = 0; i < 366; i++) {
+    if (set.has(parseDate(cur).getDay()) && !isSkipped(habit, cur)) return cur;
     cur = addDays(cur, -1);
   }
   return null;
@@ -196,7 +247,8 @@ export function getHabitStatus(habit: Habit): HabitStatus {
     if (habit.createdAt === today) {
       return 'new';
     }
-    const daysSinceCreated = getDaysBetween(habit.createdAt, today);
+    // Skipped days pause the cadence clock.
+    const daysSinceCreated = effectiveIntervalGap(habit, habit.createdAt, today);
     if (daysSinceCreated < f) return 'safe';
     if (daysSinceCreated < f * 2) return 'warning';
     return 'missed_twice';
@@ -204,7 +256,7 @@ export function getHabitStatus(habit: Habit): HabitStatus {
 
   const sortedCompletions = [...habit.completions].sort().reverse();
   const lastCompleted = sortedCompletions[0];
-  const daysSince = getDaysBetween(lastCompleted, today);
+  const daysSince = effectiveIntervalGap(habit, lastCompleted, today);
 
   if (daysSince === 0) {
     return 'completed_today'; // safety check
@@ -287,14 +339,15 @@ export function getCurrentStreak(habit: Habit): number {
   const f = habit.frequency.days;
   const sortedDates = [...new Set(habit.completions)].sort().reverse();
 
-  // The most recent completion must be within the grace window (< f*2 days ago)
-  const daysSinceLast = getDaysBetween(sortedDates[0], today);
+  // The most recent completion must be within the grace window (< f*2 days ago).
+  // Skipped days pause the clock so an off day doesn't end the streak.
+  const daysSinceLast = effectiveIntervalGap(habit, sortedDates[0], today);
   if (daysSinceLast >= f * 2) return 0;
 
   let streak = 1;
 
   for (let i = 1; i < sortedDates.length; i++) {
-    const gap = getDaysBetween(sortedDates[i], sortedDates[i - 1]);
+    const gap = effectiveIntervalGap(habit, sortedDates[i], sortedDates[i - 1]);
     if (gap <= f) {
       // Within one period — still part of the streak
       streak++;
@@ -370,7 +423,7 @@ export function getLongestStreak(habit: Habit): number {
   let current = 1;
 
   for (let i = 1; i < sortedDates.length; i++) {
-    const gap = getDaysBetween(sortedDates[i - 1], sortedDates[i]);
+    const gap = effectiveIntervalGap(habit, sortedDates[i - 1], sortedDates[i]);
     if (gap <= f) {
       current++;
       longest = Math.max(longest, current);
@@ -385,8 +438,10 @@ export function getLongestStreak(habit: Habit): number {
 /** Calculates the completion rate (completions / expected completions based on frequency) */
 export function getCompletionRate(habit: Habit): number {
   const today = getToday();
-  const totalDays = getDaysBetween(habit.createdAt, today) + 1; // Include creation day
-  if (totalDays === 0) return 0;
+  const skipCount = habit.skips.filter((d) => d >= habit.createdAt && d <= today).length;
+  // Skipped days are excluded from the span so they don't dilute the rate.
+  const totalDays = getDaysBetween(habit.createdAt, today) + 1 - skipCount; // Include creation day
+  if (totalDays <= 0) return 0;
   const uniqueCompletions = new Set(habit.completions).size;
 
   if (habit.frequency.kind === 'perWeek') {
@@ -403,7 +458,8 @@ export function getCompletionRate(habit: Habit): number {
     let expected = 0;
     let cur = habit.createdAt;
     while (cur <= today) {
-      if (set.has(parseDate(cur).getDay())) expected++;
+      // Skipped due-days are excluded from the denominator.
+      if (set.has(parseDate(cur).getDay()) && !isSkipped(habit, cur)) expected++;
       cur = addDays(cur, 1);
     }
     return Math.min(uniqueCompletions / Math.max(expected, 1), 1);
@@ -463,7 +519,7 @@ export function getDueDayCount(habit: Habit, fromStr: string, toStr: string): nu
     let count = 0;
     let cur = fromStr;
     while (cur <= toStr) {
-      if (set.has(parseDate(cur).getDay())) count++;
+      if (set.has(parseDate(cur).getDay()) && !isSkipped(habit, cur)) count++;
       cur = addDays(cur, 1);
     }
     return count;
@@ -798,8 +854,10 @@ export function getMonthlyStats(habit: Habit, monthsBack: number = 6): MonthlySt
 
     for (let d = new Date(startDate); d <= endDate; d.setDate(d.getDate() + 1)) {
       const dateStr = formatDate(d);
-      totalDays++;
       const status = getDayStatus(habit, dateStr);
+      // Skipped days don't count toward the month's day total.
+      if (status === 'skipped') continue;
+      totalDays++;
       if (status === 'completed') completed++;
       else if (status === 'missed_twice') missedTwice++;
     }
@@ -848,11 +906,13 @@ export function getMonthlyStats(habit: Habit, monthsBack: number = 6): MonthlySt
 export function getDayStatus(
   habit: Habit,
   dateStr: string,
-): 'completed' | 'missed_twice' | 'empty' {
+): 'completed' | 'missed_twice' | 'skipped' | 'empty' {
   const createdDate = habit.createdAt;
   if (dateStr < createdDate) return 'empty';
 
   if (habit.completions.includes(dateStr)) return 'completed';
+  // A skipped day is neutral — never completed, never a miss.
+  if (isSkipped(habit, dateStr)) return 'skipped';
 
   if (habit.frequency.kind === 'weekdays') {
     if (habit.frequency.weekdays.length === 0) return 'empty';
@@ -919,16 +979,17 @@ export function getDayStatus(
     }
   }
 
-  // The "anchor" is whatever the gap is being measured from
+  // The "anchor" is whatever the gap is being measured from. Skipped days
+  // between the anchor and this day pause the cadence clock.
   const anchor = prevCompletion ?? createdDate;
-  const daysFromAnchor = getDaysBetween(anchor, dateStr);
+  const daysFromAnchor = effectiveIntervalGap(habit, anchor, dateStr);
 
   // Only the exact day the user crossed into "missed twice" gets the red
   // marker. If there's a next completion that lands within the same window,
   // the streak was effectively recovered before this point — no marker.
   if (daysFromAnchor === f * 2) {
     if (nextCompletion) {
-      const anchorToNext = getDaysBetween(anchor, nextCompletion);
+      const anchorToNext = effectiveIntervalGap(habit, anchor, nextCompletion);
       if (anchorToNext < f * 2) return 'empty';
     }
     return 'missed_twice';
@@ -974,12 +1035,14 @@ export function getDayStatus(
 export function getStripDayStatus(
   habit: Habit,
   dateStr: string,
-): 'completed' | 'completed_filler' | 'missed_once' | 'missed_twice' | 'empty' {
+): 'completed' | 'completed_filler' | 'missed_once' | 'missed_twice' | 'skipped' | 'empty' {
   if (habit.completions.length === 0) return 'empty';
   const sortedCompletions = [...habit.completions].sort();
   const firstCompletion = sortedCompletions[0];
   if (dateStr < firstCompletion) return 'empty';
   if (habit.completions.includes(dateStr)) return 'completed';
+  // A skipped day is neutral and never escalates a miss.
+  if (isSkipped(habit, dateStr)) return 'skipped';
 
   const todayStr = getToday();
 

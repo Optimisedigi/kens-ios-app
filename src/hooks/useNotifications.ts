@@ -15,6 +15,20 @@ Notifications.setNotificationHandler({
   }),
 });
 
+/**
+ * Category id attached to every habit reminder so the OS shows the
+ * "Mark done" / "Snooze 1h" action buttons (Feature 5). Registered once at
+ * module load. Android interactive actions are historically less reliable
+ * than iOS; tapping the banner body still opens the app, so behaviour
+ * degrades gracefully.
+ */
+export const HABIT_REMINDER_CATEGORY = 'habit-reminder';
+
+void Notifications.setNotificationCategoryAsync(HABIT_REMINDER_CATEGORY, [
+  { identifier: 'complete', buttonTitle: 'Mark done', options: { opensAppToForeground: false } },
+  { identifier: 'snooze', buttonTitle: 'Snooze 1h', options: { opensAppToForeground: false } },
+]);
+
 /** Build the notification body line for a habit */
 function buildBody(habit: Habit): string {
   if (habit.frequency.kind === 'perWeek') {
@@ -165,6 +179,7 @@ export function useNotifications() {
         const title = `Time for ${habit.name}`;
         const body = buildBody(habit);
         const data = { habitId: habit.id };
+        const categoryIdentifier = HABIT_REMINDER_CATEGORY;
         const hour = habit.reminderHour;
         const minute = habit.reminderMinute;
 
@@ -175,7 +190,7 @@ export function useNotifications() {
             for (const dow of habit.frequency.weekdays) {
               const weekday = dow + 1;
               await Notifications.scheduleNotificationAsync({
-                content: { title, body, data },
+                content: { title, body, data, categoryIdentifier },
                 trigger: {
                   type: Notifications.SchedulableTriggerInputTypes.WEEKLY,
                   weekday,
@@ -193,7 +208,7 @@ export function useNotifications() {
             if (done >= habit.frequency.daysPerWeek) continue;
 
             await Notifications.scheduleNotificationAsync({
-              content: { title, body, data },
+              content: { title, body, data, categoryIdentifier },
               trigger: {
                 type: Notifications.SchedulableTriggerInputTypes.DAILY,
                 hour,
@@ -206,7 +221,7 @@ export function useNotifications() {
           const f = habit.frequency.days;
           if (f === 1) {
             await Notifications.scheduleNotificationAsync({
-              content: { title, body, data },
+              content: { title, body, data, categoryIdentifier },
               trigger: {
                 type: Notifications.SchedulableTriggerInputTypes.DAILY,
                 hour,
@@ -219,7 +234,7 @@ export function useNotifications() {
             // expo-notifications weekday: 1=Sunday … 7=Saturday
             const weekday = created.getDay() + 1;
             await Notifications.scheduleNotificationAsync({
-              content: { title, body, data },
+              content: { title, body, data, categoryIdentifier },
               trigger: {
                 type: Notifications.SchedulableTriggerInputTypes.WEEKLY,
                 weekday,
@@ -231,7 +246,7 @@ export function useNotifications() {
             // Every N days: schedule next due date as a one-off.
             const nextDue = getNextIntervalDueDate(habit, f, hour, minute);
             await Notifications.scheduleNotificationAsync({
-              content: { title, body, data },
+              content: { title, body, data, categoryIdentifier },
               trigger: {
                 type: Notifications.SchedulableTriggerInputTypes.DATE,
                 date: nextDue,

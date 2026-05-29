@@ -11,6 +11,7 @@ import {
   Keyboard,
   InputAccessoryView,
   Modal,
+  Switch,
 } from 'react-native';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { useRouter } from 'expo-router';
@@ -57,6 +58,41 @@ export default function AddHabitScreen() {
           color: colors.textMuted,
           marginBottom: 8,
           marginTop: 4,
+        },
+        measurableHeaderRow: {
+          flexDirection: 'row',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          marginTop: 8,
+          marginBottom: 8,
+        },
+        measurableRow: {
+          flexDirection: 'row',
+          gap: 10,
+          marginBottom: 16,
+        },
+        measurableTargetInput: {
+          width: 80,
+          backgroundColor: colors.inputBackground,
+          borderRadius: 12,
+          paddingHorizontal: 16,
+          fontSize: 18,
+          color: colors.textPrimary,
+          borderWidth: 1,
+          borderColor: colors.inputBorder,
+          minHeight: 52,
+          textAlign: 'center',
+        },
+        measurableUnitInput: {
+          flex: 1,
+          backgroundColor: colors.inputBackground,
+          borderRadius: 12,
+          paddingHorizontal: 16,
+          fontSize: 18,
+          color: colors.textPrimary,
+          borderWidth: 1,
+          borderColor: colors.inputBorder,
+          minHeight: 52,
         },
         nameRow: {
           flexDirection: 'row',
@@ -301,6 +337,11 @@ export default function AddHabitScreen() {
   const [reminderMinute, setReminderMinute] = useState<number | null>(0);
   const [endDate, setEndDate] = useState<string | null>(null);
   const [endDatePickerOpen, setEndDatePickerOpen] = useState(false);
+  // Measurable habit (Feature 3): when on, the habit tracks a numeric
+  // target + unit and Home taps increment instead of toggling.
+  const [measurable, setMeasurable] = useState(false);
+  const [targetText, setTargetText] = useState('8');
+  const [unitText, setUnitText] = useState('');
   // Local Date the spinner mutates while the modal is open. Default = a week
   // from now so the picker opens on something sensible.
   const [endDateDraft, setEndDateDraft] = useState<Date>(() => parseDate(addDays(getToday(), 7)));
@@ -332,17 +373,36 @@ export default function AddHabitScreen() {
     };
   };
 
+  const parsedTarget = (): number | null => {
+    if (!measurable) return null;
+    const n = Math.floor(Number(targetText));
+    return Number.isFinite(n) && n > 0 ? n : null;
+  };
+
   const handleSave = async () => {
     const trimmed = name.trim();
     if (!trimmed) return;
 
-    await addHabit(trimmed, selectedEmoji, buildFrequency(), reminderHour, reminderMinute, endDate);
+    const target = parsedTarget();
+    const unit = measurable ? unitText.trim() || null : null;
+    await addHabit(
+      trimmed,
+      selectedEmoji,
+      buildFrequency(),
+      reminderHour,
+      reminderMinute,
+      endDate,
+      target,
+      unit,
+    );
     await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
     router.back();
   };
 
   const canSave =
-    name.trim().length > 0 && (cadenceKind !== 'weekdays' || selectedWeekdays.length > 0);
+    name.trim().length > 0 &&
+    (cadenceKind !== 'weekdays' || selectedWeekdays.length > 0) &&
+    (!measurable || parsedTarget() !== null);
 
   // End-date picker minimum = tomorrow (an end date earlier than today
   // would mean the campaign already ended, which doesn't make sense
@@ -516,6 +576,43 @@ export default function AddHabitScreen() {
               })}
             </View>
           </>
+        )}
+
+        {/* Measurable habit (optional) */}
+        <View style={styles.measurableHeaderRow}>
+          <Text style={[styles.label, { marginBottom: 0 }]}>Measurable</Text>
+          <Switch
+            value={measurable}
+            onValueChange={(next) => {
+              Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+              setMeasurable(next);
+            }}
+            trackColor={{ false: colors.inputBackground, true: colors.accent }}
+            thumbColor="#FFFFFF"
+          />
+        </View>
+        {measurable && (
+          <View style={styles.measurableRow}>
+            <TextInput
+              style={styles.measurableTargetInput}
+              placeholder="8"
+              placeholderTextColor={colors.textMuted}
+              value={targetText}
+              onChangeText={setTargetText}
+              keyboardType="number-pad"
+              maxLength={5}
+              inputAccessoryViewID={Platform.OS === 'ios' ? KEYBOARD_ACCESSORY_ID : undefined}
+            />
+            <TextInput
+              style={styles.measurableUnitInput}
+              placeholder="unit (e.g. glasses)"
+              placeholderTextColor={colors.textMuted}
+              value={unitText}
+              onChangeText={setUnitText}
+              maxLength={20}
+              inputAccessoryViewID={Platform.OS === 'ios' ? KEYBOARD_ACCESSORY_ID : undefined}
+            />
+          </View>
         )}
 
         {/* End date (optional) */}
