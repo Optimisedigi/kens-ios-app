@@ -274,14 +274,21 @@ export function MonthlyCalendar({ habit, onDayPress, backfillMode }: MonthlyCale
     setIndex(months.length - 1);
   }, [months.length]);
 
-  const canGoPrev = index > 0;
-  const canGoNext = index < months.length - 1;
+  // Clamp the index into the current range *during render*. The `useEffect`
+  // above only re-anchors after the commit, so on the render immediately
+  // after `months` shrinks (e.g. backfill mode toggling off, or createdAt
+  // moving when a historic day is edited) a stale `index` can point past the
+  // end of the array. Without this clamp `months[index]` is `undefined` and
+  // dereferencing `current.year` below crashes the screen.
+  const safeIndex = months.length === 0 ? 0 : Math.min(Math.max(index, 0), months.length - 1);
+  const canGoPrev = safeIndex > 0;
+  const canGoNext = safeIndex < months.length - 1;
 
   const goPrev = () => {
-    if (canGoPrev) setIndex((i) => i - 1);
+    if (canGoPrev) setIndex(safeIndex - 1);
   };
   const goNext = () => {
-    if (canGoNext) setIndex((i) => i + 1);
+    if (canGoNext) setIndex(safeIndex + 1);
   };
 
   // Swipe left/right on the month grid. We claim the gesture only when the
@@ -297,7 +304,10 @@ export function MonthlyCalendar({ habit, onDayPress, backfillMode }: MonthlyCale
     }),
   ).current;
 
-  const current = months[index];
+  // Final guard: if the range is somehow empty, render nothing rather than
+  // crash (months is always non-empty in practice — createdAt ≤ today).
+  const current = months[safeIndex];
+  if (!current) return null;
 
   // Stats for the displayed month: completions / elapsed days, bounded by
   // createdAt and today.

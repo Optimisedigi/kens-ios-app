@@ -4,6 +4,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import * as Haptics from 'expo-haptics';
 import { useHabits } from '../../src/hooks/useHabits';
 import { CalendarGrid } from '../../src/components/CalendarGrid';
+import { CampaignGrid } from '../../src/components/CampaignGrid';
 import { MonthlyCalendar } from '../../src/components/MonthlyCalendar';
 import { YearGrid } from '../../src/components/YearGrid';
 import { HabitStrip } from '../../src/components/HabitStrip';
@@ -294,8 +295,13 @@ export default function StatsScreen() {
 
   const isAllView = selectedId === ALL_HABITS;
   const selectedIndex = isAllView ? -1 : habits.findIndex((h) => h.id === selectedId);
-  const selectedHabit = !isAllView ? habits[selectedIndex] : null;
-  const selectedRawHabit = !isAllView ? rawHabits[selectedIndex] : null;
+  // Guard against the transient window where `selectedId` references a habit
+  // that isn't in the freshly-reloaded list yet (e.g. right after a backfill
+  // edit triggers a refresh): findIndex returns -1, and `array[-1]` is
+  // `undefined`. Coalesce to null so every downstream `selectedHabit &&`
+  // guard holds instead of dereferencing undefined.
+  const selectedHabit = !isAllView && selectedIndex >= 0 ? habits[selectedIndex] : null;
+  const selectedRawHabit = !isAllView && selectedIndex >= 0 ? rawHabits[selectedIndex] : null;
 
   // Build the filtered, reverse-chrono notes list for the selected habit.
   const filteredNotes = useMemo(() => {
@@ -536,15 +542,28 @@ export default function StatsScreen() {
 
               <View style={styles.calendarSection}>
                 {calendarView === 'weeks' ? (
-                  <>
-                    <Text style={styles.sectionTitle}>Last 8 Weeks</Text>
-                    <CalendarGrid
-                      habit={selectedRawHabit}
-                      weeks={8}
-                      backfillMode={backfillMode || skipMode}
-                      onDayPress={(d) => handleDayPress(selectedRawHabit.id, d)}
-                    />
-                  </>
+                  selectedRawHabit.endDate ? (
+                    <>
+                      {/* Finite campaign: show exactly the required boxes
+                         from start through the end date. */}
+                      <Text style={styles.sectionTitle}>Campaign</Text>
+                      <CampaignGrid
+                        habit={selectedRawHabit}
+                        backfillMode={backfillMode || skipMode}
+                        onDayPress={(d) => handleDayPress(selectedRawHabit.id, d)}
+                      />
+                    </>
+                  ) : (
+                    <>
+                      <Text style={styles.sectionTitle}>Last 8 Weeks</Text>
+                      <CalendarGrid
+                        habit={selectedRawHabit}
+                        weeks={8}
+                        backfillMode={backfillMode || skipMode}
+                        onDayPress={(d) => handleDayPress(selectedRawHabit.id, d)}
+                      />
+                    </>
+                  )
                 ) : calendarView === 'months' ? (
                   <MonthlyCalendar
                     habit={selectedRawHabit}
