@@ -132,3 +132,69 @@ describe('Feature 4 — skip / off-day (weekdays cadence)', () => {
     expect(getCurrentStreak(habit)).toBe(9);
   });
 });
+
+describe('Feature 3 — measurable habit streak/status semantics', () => {
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
+  it('a measurable day only counts toward the streak once its date is in completions', () => {
+    freezeToday('2026-05-03');
+    // Daily measurable habit. Threshold reached on 01 and 02 (dates written
+    // into completions by incrementCount), partial on 03 (not yet in
+    // completions) — streak counts the two complete days.
+    const habit = makeHabit({
+      createdAt: '2026-05-01',
+      target: 8,
+      unit: 'glasses',
+      counts: { '2026-05-01': 8, '2026-05-02': 8, '2026-05-03': 3 },
+      completions: ['2026-05-01', '2026-05-02'],
+    });
+    // Two consecutive complete days; today's partial doesn't break it.
+    expect(getCurrentStreak(habit)).toBe(2);
+    expect(getHabitStatus(habit)).not.toBe('missed_twice');
+  });
+
+  it('a measurable partial day is not "completed_today"', () => {
+    freezeToday('2026-05-02');
+    const habit = makeHabit({
+      createdAt: '2026-05-01',
+      target: 5,
+      counts: { '2026-05-02': 2 },
+      completions: [],
+    });
+    // Only 2/5 today → not completed.
+    expect(getHabitStatus(habit)).not.toBe('completed_today');
+  });
+});
+
+describe('Feature 4 — interval skip boundary', () => {
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
+  it('two consecutive skipped days still pause an every-2-day cadence', () => {
+    freezeToday('2026-05-06');
+    // every-2-days habit completed 05-01; 05-03 and 05-05 skipped. Without
+    // skip support the gap to today would trip missed_twice; with skips the
+    // cadence clock is paused.
+    const habit = makeHabit({
+      createdAt: '2026-05-01',
+      frequency: { kind: 'interval', days: 2 },
+      completions: ['2026-05-01'],
+      skips: ['2026-05-03', '2026-05-05'],
+    });
+    expect(getHabitStatus(habit)).not.toBe('missed_twice');
+  });
+
+  it('completion rate excludes multiple skipped days from the denominator', () => {
+    freezeToday('2026-05-05');
+    // 5 days history, 2 skipped → denominator 3; 3 completions → 100%.
+    const habit = makeHabit({
+      createdAt: '2026-05-01',
+      completions: ['2026-05-01', '2026-05-02', '2026-05-05'],
+      skips: ['2026-05-03', '2026-05-04'],
+    });
+    expect(getCompletionRate(habit)).toBeCloseTo(1, 5);
+  });
+});
