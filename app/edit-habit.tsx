@@ -21,7 +21,6 @@ import { useTheme } from '../src/hooks/useTheme';
 import { TimePicker } from '../src/components/TimePicker';
 import { EmojiPickerModal } from '../src/components/EmojiPickerModal';
 import {
-  HABIT_COLOR_PALETTE,
   HabitFrequency,
   HabitWithStatus,
   INTERVAL_FREQUENCY_OPTIONS,
@@ -203,22 +202,6 @@ function EditHabitForm({ habit, updateHabit }: EditHabitFormProps) {
         },
         emojiBoxText: {
           fontSize: 26,
-        },
-        colorRow: {
-          flexDirection: 'row',
-          gap: 10,
-          paddingRight: 4,
-          paddingBottom: 16,
-        },
-        colorSwatch: {
-          width: 32,
-          height: 32,
-          borderRadius: 10,
-          borderWidth: 2,
-          borderColor: 'transparent',
-        },
-        colorSwatchSelected: {
-          borderColor: colors.textPrimary,
         },
         segmentedRow: {
           flexDirection: 'row',
@@ -433,7 +416,6 @@ function EditHabitForm({ habit, updateHabit }: EditHabitFormProps) {
   const [selectedWeekdays, setSelectedWeekdays] = useState<number[]>(
     habit.frequency.kind === 'weekdays' ? habit.frequency.weekdays : [1, 2, 3, 4, 5],
   );
-  const [selectedColor, setSelectedColor] = useState(habit.color);
   const [reminderHour, setReminderHour] = useState<number | null>(habit.reminderHour);
   const [reminderMinute, setReminderMinute] = useState<number | null>(habit.reminderMinute);
   const [endDate, setEndDate] = useState<string | null>(habit.endDate ?? null);
@@ -483,7 +465,6 @@ function EditHabitForm({ habit, updateHabit }: EditHabitFormProps) {
       name: trimmed,
       emoji: selectedEmoji,
       frequency: buildFrequency(),
-      color: selectedColor,
       reminderHour,
       reminderMinute,
       endDate,
@@ -554,29 +535,6 @@ function EditHabitForm({ habit, updateHabit }: EditHabitFormProps) {
             <Text style={styles.emojiBoxText}>{selectedEmoji}</Text>
           </Pressable>
         </View>
-
-        {/* Color Picker — single horizontally-scrollable line */}
-        <Text style={styles.label}>Color</Text>
-        <ScrollView
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          contentContainerStyle={styles.colorRow}
-        >
-          {HABIT_COLOR_PALETTE.map((color) => (
-            <Pressable
-              key={color}
-              onPress={() => {
-                setSelectedColor(color);
-                Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-              }}
-              style={[
-                styles.colorSwatch,
-                { backgroundColor: color },
-                selectedColor === color && styles.colorSwatchSelected,
-              ]}
-            />
-          ))}
-        </ScrollView>
 
         {/* Cadence kind selector */}
         <Text style={styles.label}>How often?</Text>

@@ -2,13 +2,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Habit, HABIT_COLOR_PALETTE, HabitFrequency, NotificationSettings } from '../types/habit';
 import { getToday } from '../utils/dateUtils';
 
-/** Pick the next palette color that isn't already in use; falls back to rotating through the palette if all are taken. */
-function pickNextColor(existing: Habit[]): string {
-  const used = new Set(existing.map((h) => h.color).filter(Boolean));
-  const free = HABIT_COLOR_PALETTE.find((c) => !used.has(c));
-  if (free) return free;
-  return HABIT_COLOR_PALETTE[existing.length % HABIT_COLOR_PALETTE.length];
-}
+export const DEFAULT_HABIT_COLOR = HABIT_COLOR_PALETTE[0];
 
 const HABITS_KEY = 'habits';
 const NOTIFICATION_SETTINGS_KEY = 'notification_settings';
@@ -55,7 +49,7 @@ export async function loadHabits(): Promise<Habit[]> {
     // pull whatever the legacy global time was so existing habits keep
     // firing at the same time the user already chose.
     const seed = await loadNotificationSettings();
-    const migrated: Habit[] = habits.map((h, index) => {
+    const migrated: Habit[] = habits.map((h) => {
       let frequency: HabitFrequency;
       if (h.frequency) {
         frequency = h.frequency;
@@ -74,8 +68,8 @@ export async function loadHabits(): Promise<Habit[]> {
         frequency = { kind: 'interval', days: h.frequencyDays ?? 1 };
         needsSave = true;
       }
-      const color = h.color ?? HABIT_COLOR_PALETTE[index % HABIT_COLOR_PALETTE.length];
-      if (!h.color) needsSave = true;
+      const color = DEFAULT_HABIT_COLOR;
+      if (h.color !== DEFAULT_HABIT_COLOR) needsSave = true;
       const notes = h.notes && typeof h.notes === 'object' ? h.notes : {};
       if (!h.notes) needsSave = true;
       // Reminder values: `undefined` means "never set" — seed from the
@@ -401,7 +395,7 @@ export async function addHabit(
     id: generateId(),
     name,
     emoji,
-    color: pickNextColor(habits),
+    color: DEFAULT_HABIT_COLOR,
     createdAt: getToday(),
     completions: [],
     frequency,

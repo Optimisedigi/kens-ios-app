@@ -119,17 +119,8 @@ export function isDayComplete(habit: Habit, dateStr: string): boolean {
   return habit.completions.includes(dateStr);
 }
 
-/** Curated palette for habit colors — readable on dark background */
-export const HABIT_COLOR_PALETTE: string[] = [
-  '#34D399', // emerald
-  '#38BDF8', // sky
-  '#A78BFA', // violet
-  '#FB923C', // orange
-  '#F472B6', // pink
-  '#22D3EE', // cyan
-  '#A3E635', // lime
-  '#FBBF24', // amber
-];
+/** Single habit accent color used everywhere completions are shown. */
+export const HABIT_COLOR_PALETTE: string[] = ['#34D399'];
 
 export interface IntervalFrequencyOption {
   label: string;

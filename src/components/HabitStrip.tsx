@@ -63,17 +63,22 @@ export function HabitStrip({
         container: {},
         headerRow: {
           flexDirection: 'row',
-          alignItems: 'center',
+          alignItems: 'flex-start',
           justifyContent: 'space-between',
           marginBottom: 12,
           gap: 8,
         },
         titleRow: {
           flexDirection: 'row',
-          alignItems: 'center',
+          alignItems: 'flex-start',
           gap: 8,
           flex: 1,
           flexShrink: 1,
+        },
+        titleText: {
+          flex: 1,
+          flexShrink: 1,
+          gap: 4,
         },
         colorDot: {
           width: 10,
@@ -87,6 +92,7 @@ export function HabitStrip({
           flexShrink: 1,
         },
         frequencyTag: {
+          alignSelf: 'flex-start',
           color: colors.textMuted,
           fontSize: 11,
           fontWeight: '600',
@@ -272,10 +278,12 @@ export function HabitStrip({
       <View style={styles.headerRow}>
         <View style={styles.titleRow}>
           <View style={[styles.colorDot, { backgroundColor: habit.color }]} />
-          <Text style={styles.name} numberOfLines={1}>
-            {habit.name}
-          </Text>
-          <Text style={styles.frequencyTag}>{getFrequencyLabel(habit.frequency)}</Text>
+          <View style={styles.titleText}>
+            <Text style={styles.name} numberOfLines={2}>
+              {habit.name}
+            </Text>
+            <Text style={styles.frequencyTag}>{getFrequencyLabel(habit.frequency)}</Text>
+          </View>
         </View>
         <View style={styles.metaRow}>
           <View

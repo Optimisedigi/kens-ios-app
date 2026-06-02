@@ -413,10 +413,6 @@ export default function StatsScreen() {
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.content}>
         {isAllView ? (
           <>
-            <Text style={styles.modeHint}>
-              Each square is a day. Most recent on the left. Tap a habit for full stats.
-            </Text>
-
             {rawHabits.map((habit) => (
               <Pressable
                 key={habit.id}

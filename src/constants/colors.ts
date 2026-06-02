@@ -4,9 +4,8 @@
  * `ThemeColors` contract holds for either palette. Components read from
  * the active palette via `useTheme()`; never import `Colors` directly.
  *
- * Habit accent colors (the per-habit bar/dot color saved on each habit)
- * are NOT part of the theme — they're chosen from `HABIT_COLOR_PALETTE`
- * and rendered as-is on either background.
+ * Habit completion accents use the single green habit color saved on each
+ * habit and are rendered as-is on either background.
  */
 
 export const darkColors = {
