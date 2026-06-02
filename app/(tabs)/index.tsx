@@ -5,9 +5,18 @@ import { useRouter, useFocusEffect } from 'expo-router';
 import { useHabits } from '../../src/hooks/useHabits';
 import { useNotifications } from '../../src/hooks/useNotifications';
 import { HabitCard } from '../../src/components/HabitCard';
+import { DailySummary } from '../../src/components/DailySummary';
 import { EmptyState } from '../../src/components/EmptyState';
 import { useTheme } from '../../src/hooks/useTheme';
 import { formatDisplayDate, getToday } from '../../src/utils/dateUtils';
+
+/** Time-of-day greeting based on the local hour. */
+function getGreeting(): string {
+  const hour = new Date().getHours();
+  if (hour < 12) return 'Good morning';
+  if (hour < 18) return 'Good afternoon';
+  return 'Good evening';
+}
 
 export default function HomeScreen() {
   const { colors } = useTheme();
@@ -35,15 +44,28 @@ export default function HomeScreen() {
           paddingTop: 8,
           paddingBottom: 16,
         },
+        date: {
+          fontSize: 13,
+          fontWeight: '600',
+          color: colors.accent,
+          textTransform: 'uppercase',
+          letterSpacing: 0.5,
+        },
         title: {
           fontSize: 28,
           fontWeight: 'bold',
           color: colors.textPrimary,
+          marginTop: 2,
         },
-        date: {
-          fontSize: 15,
-          color: colors.textSecondary,
-          marginTop: 4,
+        sectionLabel: {
+          fontSize: 13,
+          fontWeight: '700',
+          color: colors.textMuted,
+          textTransform: 'uppercase',
+          letterSpacing: 0.5,
+          marginHorizontal: 20,
+          marginTop: 18,
+          marginBottom: 4,
         },
         addButton: {
           width: 44,
@@ -113,8 +135,8 @@ export default function HomeScreen() {
       {/* Header */}
       <View style={styles.header}>
         <View>
-          <Text style={styles.title}>Never Miss Twice</Text>
           <Text style={styles.date}>{formatDisplayDate(getToday())}</Text>
+          <Text style={styles.title}>{getGreeting()}</Text>
         </View>
         {habits.length > 0 && (
           <Pressable style={styles.addButton} onPress={() => router.push('/add-habit')}>
@@ -129,6 +151,12 @@ export default function HomeScreen() {
         <FlatList
           data={habits}
           keyExtractor={(item) => item.id}
+          ListHeaderComponent={
+            <>
+              <DailySummary habits={habits} />
+              <Text style={styles.sectionLabel}>Today&apos;s habits</Text>
+            </>
+          }
           renderItem={({ item }) => (
             <HabitCard
               habit={item}

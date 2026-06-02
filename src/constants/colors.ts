@@ -23,7 +23,7 @@ export const darkColors = {
 
   // Calendar cells
   cellCompleted: '#34D399',
-  cellMissedOnce: '#3F3F46', // dark gray — the "black bar" warning (one cadence slot missed)
+  cellMissedOnce: '#FCA5A5', // light red — first missed due slot
   cellMissedTwice: '#EF4444',
   cellEmpty: '#1F1F1F',
   cellSkipped: '#2D3748', // muted slate — an explicit "off" day (Feature 4)
@@ -59,7 +59,7 @@ export const lightColors: typeof darkColors = {
 
   // Calendar cells
   cellCompleted: '#059669',
-  cellMissedOnce: '#D1D5DB', // light gray — the "warning" cell on a light bg
+  cellMissedOnce: '#FECACA', // light red — first missed due slot
   cellMissedTwice: '#DC2626',
   cellEmpty: '#ECECEE',
   cellSkipped: '#CBD5E1', // muted slate — an explicit "off" day (Feature 4)

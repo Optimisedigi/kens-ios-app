@@ -1,6 +1,12 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { Habit } from '../../types/habit';
-import { getCompletionRate, getCurrentStreak, getDayStatus, getHabitStatus } from '../dateUtils';
+import {
+  getCompletionRate,
+  getCurrentStreak,
+  getDayStatus,
+  getHabitStatus,
+  getStripDayStatus,
+} from '../dateUtils';
 
 /** Minimal valid Habit for tests; daily interval cadence by default. */
 function makeHabit(overrides: Partial<Habit> = {}): Habit {
@@ -196,5 +202,51 @@ describe('Feature 4 — interval skip boundary', () => {
       skips: ['2026-05-03', '2026-05-04'],
     });
     expect(getCompletionRate(habit)).toBeCloseTo(1, 5);
+  });
+});
+
+describe('Color box cadence rules', () => {
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
+  it('calendar marks weekday due-day misses as light red, then solid red, while non-selected days stay empty', () => {
+    freezeToday('2026-05-09');
+    const habit = makeHabit({
+      createdAt: '2026-05-04',
+      frequency: { kind: 'weekdays', weekdays: [1, 3, 5] },
+      completions: ['2026-05-04'],
+    });
+
+    expect(getDayStatus(habit, '2026-05-05')).toBe('empty');
+    expect(getDayStatus(habit, '2026-05-06')).toBe('missed_once');
+    expect(getDayStatus(habit, '2026-05-08')).toBe('missed_twice');
+  });
+
+  it('all-habits strip skips non-selected weekdays and escalates consecutive selected-weekday misses', () => {
+    freezeToday('2026-05-09');
+    const habit = makeHabit({
+      createdAt: '2026-05-04',
+      frequency: { kind: 'weekdays', weekdays: [1, 3, 5] },
+      completions: ['2026-05-04'],
+    });
+
+    expect(getStripDayStatus(habit, '2026-05-05')).toBe('empty');
+    expect(getStripDayStatus(habit, '2026-05-06')).toBe('missed_once');
+    expect(getStripDayStatus(habit, '2026-05-08')).toBe('missed_twice');
+  });
+
+  it('calendar marks interval misses on due slots only and leaves in-between days empty', () => {
+    freezeToday('2026-05-07');
+    const habit = makeHabit({
+      createdAt: '2026-05-01',
+      frequency: { kind: 'interval', days: 2 },
+      completions: ['2026-05-01'],
+    });
+
+    expect(getDayStatus(habit, '2026-05-02')).toBe('empty');
+    expect(getDayStatus(habit, '2026-05-03')).toBe('missed_once');
+    expect(getDayStatus(habit, '2026-05-04')).toBe('empty');
+    expect(getDayStatus(habit, '2026-05-05')).toBe('missed_twice');
   });
 });

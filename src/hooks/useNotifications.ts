@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
+import { Platform } from 'react-native';
 import * as Notifications from 'expo-notifications';
 import * as Device from 'expo-device';
 import { Habit, NotificationSettings, getFrequencyLabel } from '../types/habit';
@@ -24,10 +25,14 @@ Notifications.setNotificationHandler({
  */
 export const HABIT_REMINDER_CATEGORY = 'habit-reminder';
 
-void Notifications.setNotificationCategoryAsync(HABIT_REMINDER_CATEGORY, [
-  { identifier: 'complete', buttonTitle: 'Mark done', options: { opensAppToForeground: false } },
-  { identifier: 'snooze', buttonTitle: 'Snooze 1h', options: { opensAppToForeground: false } },
-]);
+// `setNotificationCategoryAsync` is a native-only API; calling it on web
+// throws at module load. Guard so the web bundle (used for previews) loads.
+if (Platform.OS !== 'web') {
+  void Notifications.setNotificationCategoryAsync(HABIT_REMINDER_CATEGORY, [
+    { identifier: 'complete', buttonTitle: 'Mark done', options: { opensAppToForeground: false } },
+    { identifier: 'snooze', buttonTitle: 'Snooze 1h', options: { opensAppToForeground: false } },
+  ]);
+}
 
 /** Build the notification body line for a habit */
 function buildBody(habit: Habit): string {

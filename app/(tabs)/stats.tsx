@@ -1,5 +1,5 @@
 import React, { useMemo, useState } from 'react';
-import { View, Text, TextInput, StyleSheet, ScrollView, Pressable, Switch } from 'react-native';
+import { View, Text, TextInput, StyleSheet, ScrollView, Pressable } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import * as Haptics from 'expo-haptics';
 import { useHabits } from '../../src/hooks/useHabits';
@@ -45,7 +45,7 @@ export default function StatsScreen() {
           paddingBottom: 16,
         },
         pickerContainer: {
-          paddingHorizontal: 16,
+          paddingHorizontal: 20,
           gap: 8,
           alignItems: 'center',
         },
@@ -78,60 +78,67 @@ export default function StatsScreen() {
           color: colors.textPrimary,
         },
         content: {
-          paddingHorizontal: 16,
+          paddingHorizontal: 20,
           paddingBottom: 32,
         },
+        // Borderless inline stat strip — three values separated by thin
+        // dividers instead of three bordered cards.
         statsRow: {
           flexDirection: 'row',
-          gap: 6,
-          marginBottom: 10,
-        },
-        statCard: {
-          flex: 1,
-          backgroundColor: colors.card,
-          borderRadius: 8,
-          paddingVertical: 6,
-          paddingHorizontal: 6,
           alignItems: 'center',
-          borderWidth: 1,
-          borderColor: colors.cardBorder,
+          paddingHorizontal: 4,
+          marginBottom: 24,
+        },
+        statCell: {
+          flex: 1,
+          alignItems: 'center',
+        },
+        statDivider: {
+          width: 1,
+          height: 30,
+          backgroundColor: colors.separator,
         },
         statValue: {
-          fontSize: 17,
-          fontWeight: '700',
+          fontSize: 26,
+          fontWeight: '800',
           color: colors.textPrimary,
-          marginBottom: 0,
+          letterSpacing: -0.5,
+          marginBottom: 4,
         },
         statLabel: {
-          fontSize: 10,
+          fontSize: 11,
+          fontWeight: '500',
           color: colors.textMuted,
           textAlign: 'center',
         },
+        // Borderless segmented control — active tab gets an accent underline.
         toggleRow: {
           flexDirection: 'row',
-          backgroundColor: colors.card,
-          borderRadius: 10,
-          padding: 3,
-          marginBottom: 10,
-          borderWidth: 1,
-          borderColor: colors.cardBorder,
+          gap: 22,
+          marginBottom: 16,
+          paddingHorizontal: 4,
         },
         toggleButton: {
-          flex: 1,
-          paddingVertical: 6,
-          borderRadius: 8,
-          alignItems: 'center',
+          paddingBottom: 6,
+          borderBottomWidth: 2,
+          borderBottomColor: 'transparent',
         },
         toggleButtonActive: {
-          backgroundColor: colors.accent,
+          borderBottomColor: colors.accent,
         },
         toggleText: {
-          fontSize: 13,
+          fontSize: 15,
           fontWeight: '600',
           color: colors.textMuted,
         },
         toggleTextActive: {
           color: colors.textPrimary,
+        },
+        divider: {
+          height: 1,
+          backgroundColor: colors.separator,
+          marginTop: 20,
+          marginBottom: 20,
         },
         modeHint: {
           fontSize: 12,
@@ -139,36 +146,55 @@ export default function StatsScreen() {
           marginBottom: 18,
           lineHeight: 16,
         },
-        backfillRow: {
-          flexDirection: 'row',
-          alignItems: 'center',
-          gap: 12,
+        habitCard: {
           backgroundColor: colors.card,
-          borderRadius: 12,
-          paddingHorizontal: 12,
-          paddingVertical: 10,
-          marginBottom: 10,
+          borderRadius: 18,
+          borderWidth: 1,
+          borderColor: colors.cardBorder,
+          padding: 16,
+          marginBottom: 12,
+        },
+        habitCardPressed: {
+          opacity: 0.7,
+        },
+        dayModeRow: {
+          flexDirection: 'row',
+          backgroundColor: colors.card,
+          borderRadius: 14,
+          padding: 4,
+          marginTop: 12,
+          marginBottom: 8,
           borderWidth: 1,
           borderColor: colors.cardBorder,
         },
-        backfillTextWrap: {
+        dayModeButton: {
           flex: 1,
+          paddingVertical: 7,
+          borderRadius: 10,
+          alignItems: 'center',
         },
-        backfillLabel: {
-          color: colors.textPrimary,
-          fontSize: 14,
+        dayModeButtonActive: {
+          backgroundColor: colors.accent,
+        },
+        dayModeText: {
+          fontSize: 13,
           fontWeight: '600',
-        },
-        backfillHelper: {
           color: colors.textMuted,
-          fontSize: 11,
-          marginTop: 2,
-          lineHeight: 14,
+        },
+        dayModeTextActive: {
+          color: colors.textPrimary,
+        },
+        dayModeHint: {
+          fontSize: 12,
+          color: colors.textMuted,
+          marginBottom: 12,
+          marginHorizontal: 4,
+          lineHeight: 16,
         },
         calendarSection: {
           backgroundColor: colors.card,
-          borderRadius: 14,
-          padding: 12,
+          borderRadius: 20,
+          padding: 16,
           borderWidth: 1,
           borderColor: colors.cardBorder,
         },
@@ -199,12 +225,7 @@ export default function StatsScreen() {
           fontSize: 12,
         },
         notesSection: {
-          marginTop: 18,
-          backgroundColor: colors.card,
-          borderRadius: 16,
-          padding: 16,
-          borderWidth: 1,
-          borderColor: colors.cardBorder,
+          marginTop: 24,
         },
         filterInput: {
           backgroundColor: colors.inputBackground,
@@ -245,10 +266,6 @@ export default function StatsScreen() {
           alignItems: 'center',
           justifyContent: 'center',
           paddingBottom: 80,
-        },
-        emptyEmoji: {
-          fontSize: 48,
-          marginBottom: 12,
         },
         emptyText: {
           fontSize: 16,
@@ -293,6 +310,25 @@ export default function StatsScreen() {
     [skipMode, backfillMode, toggleSkip, toggleCompletionForDate],
   );
 
+  // The three day-tap modes are mutually exclusive, so present them as one
+  // segmented control. `note` is the default (neither toggle on).
+  const dayMode: 'note' | 'backfill' | 'skip' = skipMode
+    ? 'skip'
+    : backfillMode
+      ? 'backfill'
+      : 'note';
+  const setDayMode = React.useCallback((mode: 'note' | 'backfill' | 'skip') => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    setBackfillMode(mode === 'backfill');
+    setSkipMode(mode === 'skip');
+  }, []);
+  const dayModeHint =
+    dayMode === 'backfill'
+      ? 'Tap a day to mark / unmark it complete.'
+      : dayMode === 'skip'
+        ? "Tap a day to mark it off — off days don't break your streak."
+        : 'Tap a day to add a note.';
+
   const isAllView = selectedId === ALL_HABITS;
   const selectedIndex = isAllView ? -1 : habits.findIndex((h) => h.id === selectedId);
   // Guard against the transient window where `selectedId` references a habit
@@ -319,7 +355,6 @@ export default function StatsScreen() {
           <Text style={styles.title}>Progress</Text>
         </View>
         <View style={styles.emptyContainer}>
-          <Text style={styles.emptyEmoji}>📊</Text>
           <Text style={styles.emptyText}>Add some habits to see your stats</Text>
         </View>
       </SafeAreaView>
@@ -331,7 +366,7 @@ export default function StatsScreen() {
       <View style={styles.header}>
         <Text style={styles.title}>Progress</Text>
         <Text style={styles.subtitle}>
-          {isAllView ? 'One mini-calendar per habit' : 'Tap a habit to switch views'}
+          {isAllView ? 'Your habits at a glance' : 'Tap a habit to switch views'}
         </Text>
       </View>
 
@@ -379,8 +414,7 @@ export default function StatsScreen() {
         {isAllView ? (
           <>
             <Text style={styles.modeHint}>
-              Each cell = one day. Color = a day you did the habit. Empty = inside the cadence
-              window. Gray = missed once. Red = missed twice. Most recent on the left.
+              Each square is a day. Most recent on the left. Tap a habit for full stats.
             </Text>
 
             {rawHabits.map((habit) => (
@@ -390,10 +424,11 @@ export default function StatsScreen() {
                   Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
                   setSelectedId(habit.id);
                 }}
+                style={({ pressed }) => [styles.habitCard, pressed && styles.habitCardPressed]}
                 accessibilityRole="button"
                 accessibilityLabel={`Open ${habit.name} stats`}
               >
-                <HabitStrip habit={habit} mode="days" ascending={true} />
+                <HabitStrip habit={habit} mode="days" columns={16} ascending={true} />
               </Pressable>
             ))}
 
@@ -416,26 +451,34 @@ export default function StatsScreen() {
           selectedHabit &&
           selectedRawHabit && (
             <>
-              {/* Stats cards — compact one-line layout */}
+              {/* Stats — borderless inline strip with dividers */}
               <View style={styles.statsRow}>
-                <View style={styles.statCard}>
-                  <Text style={styles.statValue}>{selectedHabit.currentStreak}</Text>
-                  <Text style={styles.statLabel}>Current Streak</Text>
+                <View style={styles.statCell}>
+                  <Text style={[styles.statValue, { color: selectedHabit.color }]}>
+                    {selectedHabit.currentStreak}
+                  </Text>
+                  <Text style={styles.statLabel}>Current streak</Text>
                 </View>
-                <View style={styles.statCard}>
-                  <Text style={styles.statValue}>{selectedHabit.longestStreak}</Text>
-                  <Text style={styles.statLabel}>Longest Streak</Text>
+                <View style={styles.statDivider} />
+                <View style={styles.statCell}>
+                  <Text style={[styles.statValue, { color: selectedHabit.color }]}>
+                    {selectedHabit.longestStreak}
+                  </Text>
+                  <Text style={styles.statLabel}>Longest streak</Text>
                 </View>
-                <View style={styles.statCard}>
-                  <Text style={styles.statValue}>
+                <View style={styles.statDivider} />
+                <View style={styles.statCell}>
+                  <Text style={[styles.statValue, { color: selectedHabit.color }]}>
                     {Math.round(selectedHabit.completionRate * 100)}%
                   </Text>
-                  <Text style={styles.statLabel}>Completion Rate</Text>
+                  <Text style={styles.statLabel}>Completion</Text>
                 </View>
               </View>
 
               {/* Resilience Score + recovery analytics (Feature 6) */}
               <ResilienceCard habit={selectedRawHabit} accent={selectedRawHabit.color} />
+
+              <View style={styles.divider} />
 
               {/* Calendar view toggle */}
               <View style={styles.toggleRow}>
@@ -483,63 +526,6 @@ export default function StatsScreen() {
                 </Pressable>
               </View>
 
-              {/* Backfill toggle — only on Weeks/Months (Year grid is too
-                 dense to safely target individual days). When on, day taps
-                 toggle completion instead of opening the note editor. */}
-              {(calendarView === 'weeks' || calendarView === 'months') && (
-                <View style={styles.backfillRow}>
-                  <View style={styles.backfillTextWrap}>
-                    <Text style={styles.backfillLabel}>Backfill mode</Text>
-                    <Text style={styles.backfillHelper}>
-                      {backfillMode
-                        ? 'Tap a day to mark / unmark it complete.'
-                        : 'Tap a day to add a note. Turn on to log missed days.'}
-                    </Text>
-                  </View>
-                  <Switch
-                    value={backfillMode}
-                    onValueChange={(next) => {
-                      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-                      setBackfillMode(next);
-                      if (next) setSkipMode(false);
-                    }}
-                    trackColor={{
-                      false: colors.inputBackground,
-                      true: colors.accent,
-                    }}
-                    thumbColor="#FFFFFF"
-                  />
-                </View>
-              )}
-
-              {/* Skip toggle — mark a day as an explicit off / not-due day
-                 (vacation, sick). A skipped day doesn't break the streak. */}
-              {(calendarView === 'weeks' || calendarView === 'months') && (
-                <View style={styles.backfillRow}>
-                  <View style={styles.backfillTextWrap}>
-                    <Text style={styles.backfillLabel}>Skip mode</Text>
-                    <Text style={styles.backfillHelper}>
-                      {skipMode
-                        ? 'Tap a day to mark / unmark it as an off day.'
-                        : "Tap a day to mark it off. Off days don't break your streak."}
-                    </Text>
-                  </View>
-                  <Switch
-                    value={skipMode}
-                    onValueChange={(next) => {
-                      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-                      setSkipMode(next);
-                      if (next) setBackfillMode(false);
-                    }}
-                    trackColor={{
-                      false: colors.inputBackground,
-                      true: colors.accent,
-                    }}
-                    thumbColor="#FFFFFF"
-                  />
-                </View>
-              )}
-
               <View style={styles.calendarSection}>
                 {calendarView === 'weeks' ? (
                   selectedRawHabit.endDate ? (
@@ -574,6 +560,34 @@ export default function StatsScreen() {
                   <YearGrid habit={selectedRawHabit} onDayPress={setNoteDate} />
                 )}
               </View>
+
+              {/* Day-tap mode — Note / Backfill / Skip are mutually
+                 exclusive, so one compact segmented control. Sits below the
+                 calendar since it controls what a day tap does. Hidden on
+                 Year (too dense to tap a single day). */}
+              {(calendarView === 'weeks' || calendarView === 'months') && (
+                <>
+                  <View style={styles.dayModeRow}>
+                    {(['note', 'backfill', 'skip'] as const).map((mode) => (
+                      <Pressable
+                        key={mode}
+                        onPress={() => setDayMode(mode)}
+                        style={[
+                          styles.dayModeButton,
+                          dayMode === mode && styles.dayModeButtonActive,
+                        ]}
+                      >
+                        <Text
+                          style={[styles.dayModeText, dayMode === mode && styles.dayModeTextActive]}
+                        >
+                          {mode === 'note' ? 'Note' : mode === 'backfill' ? 'Backfill' : 'Skip'}
+                        </Text>
+                      </Pressable>
+                    ))}
+                  </View>
+                  <Text style={styles.dayModeHint}>{dayModeHint}</Text>
+                </>
+              )}
 
               {/* Notes section — only when this habit has any notes */}
               {Object.keys(selectedRawHabit.notes).length > 0 && (

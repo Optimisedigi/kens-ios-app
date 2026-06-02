@@ -21,7 +21,7 @@ const CELL_GAP = 3;
 // the dark card background — the all-habits strip stays as-is.
 const EMPTY_CELL = '#2E2E2E';
 
-type CellState = 'completed' | 'missed_twice' | 'skipped' | 'empty' | 'future';
+type CellState = 'completed' | 'missed_once' | 'missed_twice' | 'skipped' | 'empty' | 'future';
 
 interface Cell {
   dateStr: string;
@@ -66,6 +66,8 @@ function getCellColor(state: CellState, habitColor: string, colors: ThemeColors)
   switch (state) {
     case 'completed':
       return habitColor;
+    case 'missed_once':
+      return colors.cellMissedOnce;
     case 'missed_twice':
       return colors.cellMissedTwice;
     case 'skipped':
@@ -281,6 +283,10 @@ export function YearGrid({ habit, onDayPress }: YearGridProps) {
         <View style={styles.legendItem}>
           <View style={[styles.legendDot, { backgroundColor: habit.color }]} />
           <Text style={styles.legendText}>Completed</Text>
+        </View>
+        <View style={styles.legendItem}>
+          <View style={[styles.legendDot, { backgroundColor: colors.cellMissedOnce }]} />
+          <Text style={styles.legendText}>Missed once</Text>
         </View>
         <View style={styles.legendItem}>
           <View style={[styles.legendDot, { backgroundColor: colors.cellMissedTwice }]} />

@@ -1,4 +1,5 @@
 import { useEffect } from 'react';
+import { Platform } from 'react-native';
 import * as Notifications from 'expo-notifications';
 import { loadHabits, toggleCompletionForDate } from '../storage/habitStorage';
 import { getToday } from '../utils/dateUtils';
@@ -56,6 +57,9 @@ export async function handleNotificationResponse(
  */
 export function useNotificationActions(onChanged: () => void): void {
   useEffect(() => {
+    // Interactive-notification APIs are native-only; skip on web (preview).
+    if (Platform.OS === 'web') return;
+
     let cancelled = false;
 
     // Cold-start: the app may have been launched by tapping an action.

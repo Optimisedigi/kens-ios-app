@@ -46,8 +46,8 @@ interface HabitStripProps {
   ascending?: boolean;
 }
 
-const CELL_SIZE = 18;
-const CELL_GAP = 3;
+const CELL_SIZE = 16;
+const CELL_GAP = 4;
 
 export function HabitStrip({
   habit,
@@ -60,14 +60,12 @@ export function HabitStrip({
   const styles = useMemo(
     () =>
       StyleSheet.create({
-        container: {
-          marginBottom: 18,
-        },
+        container: {},
         headerRow: {
           flexDirection: 'row',
           alignItems: 'center',
           justifyContent: 'space-between',
-          marginBottom: 8,
+          marginBottom: 12,
           gap: 8,
         },
         titleRow: {
@@ -85,7 +83,7 @@ export function HabitStrip({
         name: {
           color: colors.textPrimary,
           fontSize: 16,
-          fontWeight: '600',
+          fontWeight: '700',
           flexShrink: 1,
         },
         frequencyTag: {
@@ -109,8 +107,9 @@ export function HabitStrip({
           borderRadius: 4,
         },
         meta: {
-          color: colors.textMuted,
-          fontSize: 12,
+          color: colors.textSecondary,
+          fontSize: 13,
+          fontWeight: '600',
         },
         row: {
           flexDirection: 'row',
@@ -175,17 +174,15 @@ export function HabitStrip({
 
       let wkStart = firstWeekStart;
       while (wkStart <= todayWeekStart) {
-        // Collect completions inside this Mon–Sun week, in chronological
-        // order, capped at `target` so a user who logs 3 in a 2/week
-        // week doesn't blow up the row — the third tick lives on the
-        // calendar but the strip stays aligned to the cadence promise.
+        // Collect completions inside this Mon–Sun week in chronological
+        // order. Extra completions beyond the target are still rendered as
+        // bonus green cells — the All Habits strip rewards them, never caps.
         const inWeek: string[] = [];
         for (let i = 0; i < 7; i++) {
           const d = addDays(wkStart, i);
           if (completionSet.has(d)) inWeek.push(d);
         }
-        const shown = inWeek.slice(0, target);
-        for (const d of shown) {
+        for (const d of inWeek) {
           cells.push({ key: d, state: 'completed' });
         }
 
@@ -198,11 +195,20 @@ export function HabitStrip({
             cells.push({ key: `pending-${wkStart}`, state: 'empty' });
           }
         } else if (inWeek.length < target) {
-          // Past week shortfall: one red cell, regardless of how many were
-          // missed (1/2 short and 0/2 short both render as a single miss).
+          // Past week shortfall: one red escalation cell, regardless of how
+          // many completions short the week was.
+          let previousWeekWasShort = false;
+          const previousWeekStart = addDays(wkStart, -7);
+          if (previousWeekStart >= firstWeekStart) {
+            let previousCount = 0;
+            for (let i = 0; i < 7; i++) {
+              if (completionSet.has(addDays(previousWeekStart, i))) previousCount++;
+            }
+            previousWeekWasShort = previousCount < target;
+          }
           cells.push({
             key: `miss-${wkStart}`,
-            state: 'missed_twice',
+            state: previousWeekWasShort ? 'missed_twice' : 'missed_once',
           });
         }
 
@@ -320,7 +326,7 @@ function Cell({
           borderRadius: 4,
         },
       }),
-    [colors],
+    [],
   );
 
   // Both "future" and "empty" render as the same dark filled box — keeps

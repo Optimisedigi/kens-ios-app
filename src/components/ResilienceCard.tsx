@@ -1,5 +1,7 @@
-import React, { useMemo } from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import React, { useMemo, useState } from 'react';
+import { View, Text, StyleSheet, Pressable } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
+import * as Haptics from 'expo-haptics';
 import { Habit, WEEKDAY_LABELS } from '../types/habit';
 import { useTheme } from '../hooks/useTheme';
 import { getRecoveryStats } from '../utils/resilience';
@@ -13,56 +15,74 @@ interface ResilienceCardProps {
 /**
  * Resilience Score + recovery analytics (Feature 6). Shows how well the user
  * bounces back after a slip rather than rewarding an unbroken chain.
+ *
+ * Rendered as a borderless, collapsible section to keep the Progress tab
+ * uncluttered: the header (label + score) is always visible; tapping it
+ * reveals an explanatory tooltip plus the recovery metrics and weekday
+ * breakdown. Most users won't know what "Resilience" means until they read
+ * the tooltip, so it leads the expanded content.
  */
 export function ResilienceCard({ habit, accent }: ResilienceCardProps) {
   const { colors } = useTheme();
   const stats = useMemo(() => getRecoveryStats(habit), [habit]);
+  const [expanded, setExpanded] = useState(false);
 
   const styles = useMemo(
     () =>
       StyleSheet.create({
-        card: {
-          backgroundColor: colors.card,
-          borderRadius: 12,
-          borderWidth: 1,
-          borderColor: colors.cardBorder,
-          padding: 16,
-          marginBottom: 12,
+        headerRow: {
+          flexDirection: 'row',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+        },
+        titleGroup: {
+          flexDirection: 'row',
+          alignItems: 'center',
+          gap: 6,
         },
         title: {
           fontSize: 13,
           fontWeight: '700',
-          color: colors.textSecondary,
-          marginBottom: 12,
+          color: colors.textMuted,
           textTransform: 'uppercase',
           letterSpacing: 0.5,
         },
-        scoreRow: {
+        scoreGroup: {
           flexDirection: 'row',
-          alignItems: 'flex-end',
-          marginBottom: 4,
+          alignItems: 'baseline',
+          gap: 6,
         },
         score: {
-          fontSize: 44,
+          fontSize: 26,
           fontWeight: '800',
-          lineHeight: 48,
+          letterSpacing: -0.5,
         },
         scoreMax: {
-          fontSize: 16,
+          fontSize: 13,
           fontWeight: '600',
           color: colors.textMuted,
-          marginLeft: 4,
-          marginBottom: 6,
         },
-        scoreCaption: {
+        chevron: {
+          marginLeft: 2,
+        },
+        tooltip: {
+          flexDirection: 'row',
+          gap: 8,
+          backgroundColor: colors.inputBackground,
+          borderRadius: 12,
+          padding: 12,
+          marginTop: 14,
+        },
+        tooltipText: {
+          flex: 1,
           fontSize: 12,
-          color: colors.textMuted,
-          marginBottom: 14,
+          lineHeight: 17,
+          color: colors.textSecondary,
         },
         metricsRow: {
           flexDirection: 'row',
           gap: 8,
-          marginBottom: 16,
+          marginTop: 16,
         },
         metric: {
           flex: 1,
@@ -82,6 +102,7 @@ export function ResilienceCard({ habit, accent }: ResilienceCardProps) {
         weekdayTitle: {
           fontSize: 11,
           color: colors.textMuted,
+          marginTop: 18,
           marginBottom: 8,
         },
         barsRow: {
@@ -116,50 +137,81 @@ export function ResilienceCard({ habit, accent }: ResilienceCardProps) {
   const recoveryPct = Math.round(stats.recoveryRate * 100);
   const comeback = stats.avgComebackDays === null ? '—' : `${stats.avgComebackDays.toFixed(1)}d`;
 
+  const toggle = () => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    setExpanded((prev) => !prev);
+  };
+
   return (
-    <View style={styles.card}>
-      <Text style={styles.title}>Resilience</Text>
-
-      <View style={styles.scoreRow}>
-        <Text style={[styles.score, { color: accent }]}>{stats.resilienceScore}</Text>
-        <Text style={styles.scoreMax}>/100</Text>
-      </View>
-      <Text style={styles.scoreCaption}>How well you bounce back after a slip</Text>
-
-      <View style={styles.metricsRow}>
-        <View style={styles.metric}>
-          <Text style={styles.metricValue}>{stats.slips === 0 ? '—' : `${recoveryPct}%`}</Text>
-          <Text style={styles.metricLabel}>Recovery rate</Text>
+    <View>
+      <Pressable
+        style={styles.headerRow}
+        onPress={toggle}
+        accessibilityRole="button"
+        accessibilityLabel={expanded ? 'Hide resilience details' : 'Show resilience details'}
+      >
+        <View style={styles.titleGroup}>
+          <Text style={styles.title}>Resilience</Text>
+          <Ionicons name="information-circle-outline" size={15} color={colors.textMuted} />
         </View>
-        <View style={styles.metric}>
-          <Text style={styles.metricValue}>{comeback}</Text>
-          <Text style={styles.metricLabel}>Avg comeback</Text>
+        <View style={styles.scoreGroup}>
+          <Text style={[styles.score, { color: accent }]}>{stats.resilienceScore}</Text>
+          <Text style={styles.scoreMax}>/100</Text>
+          <Ionicons
+            name={expanded ? 'chevron-up' : 'chevron-down'}
+            size={16}
+            color={colors.textMuted}
+            style={styles.chevron}
+          />
         </View>
-        <View style={styles.metric}>
-          <Text style={styles.metricValue}>{stats.slips}</Text>
-          <Text style={styles.metricLabel}>Total slips</Text>
-        </View>
-      </View>
+      </Pressable>
 
-      <Text style={styles.weekdayTitle}>Slips by weekday</Text>
-      <View style={styles.barsRow}>
-        {stats.slipsByWeekday.map((count, dow) => (
-          <View key={dow} style={styles.barColumn}>
-            <View style={styles.barTrack}>
-              <View
-                style={[
-                  styles.bar,
-                  {
-                    height: Math.max(2, (count / maxSlips) * 36),
-                    backgroundColor: count > 0 ? colors.missed : colors.cardBorder,
-                  },
-                ]}
-              />
-            </View>
-            <Text style={styles.barLabel}>{WEEKDAY_LABELS[dow]}</Text>
+      {expanded && (
+        <>
+          <View style={styles.tooltip}>
+            <Ionicons name="bulb-outline" size={16} color={accent} />
+            <Text style={styles.tooltipText}>
+              Resilience scores how well you bounce back after a slip — not whether your streak is
+              perfect. Recovering quickly keeps it high, even if you miss a day.
+            </Text>
           </View>
-        ))}
-      </View>
+
+          <View style={styles.metricsRow}>
+            <View style={styles.metric}>
+              <Text style={styles.metricValue}>{stats.slips === 0 ? '—' : `${recoveryPct}%`}</Text>
+              <Text style={styles.metricLabel}>Recovery rate</Text>
+            </View>
+            <View style={styles.metric}>
+              <Text style={styles.metricValue}>{comeback}</Text>
+              <Text style={styles.metricLabel}>Avg comeback</Text>
+            </View>
+            <View style={styles.metric}>
+              <Text style={styles.metricValue}>{stats.slips}</Text>
+              <Text style={styles.metricLabel}>Total slips</Text>
+            </View>
+          </View>
+
+          <Text style={styles.weekdayTitle}>Slips by weekday</Text>
+          <View style={styles.barsRow}>
+            {stats.slipsByWeekday.map((count, dow) => (
+              <View key={dow} style={styles.barColumn}>
+                <View style={styles.barTrack}>
+                  <View
+                    style={[
+                      styles.bar,
+                      {
+                        height: Math.max(2, (count / maxSlips) * 36),
+                        backgroundColor: count > 0 ? colors.missed : colors.cardBorder,
+                      },
+                    ]}
+                  />
+                </View>
+                <Text style={styles.barLabel}>{WEEKDAY_LABELS[dow]}</Text>
+              </View>
+            ))}
+          </View>
+        </>
+      )}
     </View>
   );
 }

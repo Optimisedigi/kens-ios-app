@@ -4,7 +4,7 @@ import { useTheme } from '../hooks/useTheme';
 import { ThemeColors } from '../constants/colors';
 
 interface DayCellProps {
-  status: 'completed' | 'missed_twice' | 'skipped' | 'empty';
+  status: 'completed' | 'missed_once' | 'missed_twice' | 'skipped' | 'empty';
   label?: string; // Day number
   size?: number;
   /** Render a small dot in the corner if a note exists for this day */
@@ -24,6 +24,8 @@ function getCellColor(status: DayCellProps['status'], colors: ThemeColors): stri
   switch (status) {
     case 'completed':
       return colors.cellCompleted;
+    case 'missed_once':
+      return colors.cellMissedOnce;
     case 'missed_twice':
       return colors.cellMissedTwice;
     case 'skipped':
@@ -64,7 +66,7 @@ export function DayCell({
           opacity: 0.55,
         },
       }),
-    [colors],
+    [],
   );
 
   const backgroundColor = getCellColor(status, colors);

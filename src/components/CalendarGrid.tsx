@@ -157,6 +157,10 @@ export function CalendarGrid({ habit, weeks = 12, onDayPress, backfillMode }: Ca
           <Text style={styles.legendText}>Completed</Text>
         </View>
         <View style={styles.legendItem}>
+          <View style={[styles.legendDot, { backgroundColor: colors.cellMissedOnce }]} />
+          <Text style={styles.legendText}>Missed once</Text>
+        </View>
+        <View style={styles.legendItem}>
           <View style={[styles.legendDot, { backgroundColor: colors.cellMissedTwice }]} />
           <Text style={styles.legendText}>Missed twice</Text>
         </View>

@@ -891,45 +891,39 @@ export function getMonthlyStats(habit: Habit, monthsBack: number = 6): MonthlySt
 }
 
 /**
- * Returns the status of a specific day for a habit:
- * "completed", "missed_twice", "empty"
+ * Returns the status of a specific calendar day for a habit.
  *
- * Philosophy: "You can miss once, but never twice." A single red marker is
- * placed on the day a user *crossed into* missed-twice territory.
+ * Calendar views are date-based records:
+ *  - completed days are green,
+ *  - the first missed due slot after a completion/reset is light red,
+ *  - the second consecutive missed due slot is solid red,
+ *  - non-due / in-between / future days are empty.
  *
- * For interval cadences this is the day exactly `days * 2` after the last
- * completion (or createdAt). For per-week cadences this is the day where
- * the rolling 7-day windows ending on that day AND on the day before both
- * fell short of `daysPerWeek` AND the user has no way to recover on that
- * single day — i.e. the deficit became locked in.
+ * Completions reset miss escalation; skipped due-days are neutral and pause it.
  */
 export function getDayStatus(
   habit: Habit,
   dateStr: string,
-): 'completed' | 'missed_twice' | 'skipped' | 'empty' {
+): 'completed' | 'missed_once' | 'missed_twice' | 'skipped' | 'empty' {
   const createdDate = habit.createdAt;
   if (dateStr < createdDate) return 'empty';
 
   if (habit.completions.includes(dateStr)) return 'completed';
   // A skipped day is neutral — never completed, never a miss.
   if (isSkipped(habit, dateStr)) return 'skipped';
+  // Today is still in progress from the user's point of view; future dates
+  // are never due yet.
+  if (dateStr >= getToday()) return 'empty';
 
   if (habit.frequency.kind === 'weekdays') {
     if (habit.frequency.weekdays.length === 0) return 'empty';
     // Non-due day — nothing to mark.
     if (!isDueOnWeekday(habit, dateStr)) return 'empty';
-    // Due day not completed. Mark "missed_twice" only when the previous due
-    // day was also missed AND the day before *that* was completed (or before
-    // createdAt) — keeps one mark per locked-in event.
+    // A missed selected weekday is light red unless the immediately previous
+    // selected weekday was also missed, in which case it escalates to solid red.
     const prevDue = prevDueBefore(habit, dateStr);
-    if (prevDue === null || prevDue < createdDate) return 'empty';
-    if (habit.completions.includes(prevDue)) return 'empty';
-    // Both this due day and the previous due day are missed.
-    const prevPrevDue = prevDueBefore(habit, prevDue);
-    if (prevPrevDue !== null && prevPrevDue >= createdDate) {
-      // If the day-before-previous was *also* missed, the missed-twice
-      // flag was already raised on the previous due day — don't double-mark.
-      if (!habit.completions.includes(prevPrevDue)) return 'empty';
+    if (prevDue === null || prevDue < createdDate || habit.completions.includes(prevDue)) {
+      return 'missed_once';
     }
     return 'missed_twice';
   }
@@ -948,18 +942,11 @@ export function getDayStatus(
     // Locked-in miss: yesterday's window already short, and even completing
     // today wouldn't have reached the target on this window.
     if (donePrev < target && doneToday + 1 < target) {
-      // Only mark the first day this becomes true — i.e. the day before
-      // wasn't already missed_twice.
       const dayBefore = addDays(prevDay, -1);
-      if (dayBefore < createdDate) return 'missed_twice';
+      if (dayBefore < createdDate) return 'missed_once';
       const doneDayBefore = countCompletionsInRollingWeek(habit, dayBefore);
       const donePrevPlusOne = donePrev + 1;
-      // If the same condition held the previous day, this isn't a fresh
-      // crossing — leave it empty so the calendar shows one mark per event.
-      if (doneDayBefore < target && donePrevPlusOne < target) {
-        return 'empty';
-      }
-      return 'missed_twice';
+      return doneDayBefore < target && donePrevPlusOne < target ? 'missed_twice' : 'missed_once';
     }
 
     return 'empty';
@@ -984,36 +971,36 @@ export function getDayStatus(
   const anchor = prevCompletion ?? createdDate;
   const daysFromAnchor = effectiveIntervalGap(habit, anchor, dateStr);
 
-  // Only the exact day the user crossed into "missed twice" gets the red
-  // marker. If there's a next completion that lands within the same window,
-  // the streak was effectively recovered before this point — no marker.
-  if (daysFromAnchor === f * 2) {
-    if (nextCompletion) {
-      const anchorToNext = effectiveIntervalGap(habit, anchor, nextCompletion);
-      if (anchorToNext < f * 2) return 'empty';
-    }
-    return 'missed_twice';
+  const firstMissGap = f;
+  const secondMissGap = f * 2;
+  if (daysFromAnchor !== firstMissGap && daysFromAnchor !== secondMissGap) {
+    return 'empty';
   }
 
-  return 'empty';
+  if (nextCompletion) {
+    const anchorToNext = effectiveIntervalGap(habit, anchor, nextCompletion);
+    if (anchorToNext <= daysFromAnchor) return 'empty';
+  }
+
+  return daysFromAnchor === firstMissGap ? 'missed_once' : 'missed_twice';
 }
 
 /**
  * Per-day status used ONLY by the All Habits strip (days mode). The strip
  * reads chronologically left→right (or right→left when ascending) and
  * communicates each completion as a colored cell, then escalates missed
- * cadence slots: the first slot you blow past becomes a dark-gray
- * "missed_once" warning bar, and the *next* missed slot after that becomes
- * a red "missed_twice" bar. A completion resets the escalation.
+ * cadence slots: the first missed due slot becomes a light-red
+ * "missed_once" warning bar, and the *next* consecutive missed slot after
+ * that becomes a solid-red "missed_twice" bar. A completion resets the
+ * escalation.
  *
  * Rules per cadence:
  *
- *  - Interval (every N days): after a completion on day D, days D+1…D+N
- *    are inside the cadence window and stay empty. Day D+N+1 is the first
- *    "missed slot" → missed_once. Day D+2N+1 is the second consecutive
- *    missed slot → missed_twice. Day D+3N+1, D+4N+1… also missed_twice
- *    (it never escalates further). A completion anywhere along the way
- *    resets the anchor.
+ *  - Interval (every N days): after a completion on day D, in-between days
+ *    stay empty until the next due slot at D+N. If that due slot is missed it
+ *    renders missed_once. The next consecutive missed due slot at D+2N renders
+ *    missed_twice. Later missed slots also render missed_twice. A completion
+ *    anywhere along the way resets the anchor.
  *
  *  - Per-week (K/week): Mon–Sun calendar weeks. Each completion is a
  *    colored cell. If a *past* week fell short of K, the gap shows as a
@@ -1045,6 +1032,7 @@ export function getStripDayStatus(
   if (isSkipped(habit, dateStr)) return 'skipped';
 
   const todayStr = getToday();
+  if (dateStr >= todayStr) return 'empty';
 
   if (habit.frequency.kind === 'interval') {
     const f = habit.frequency.days;
@@ -1057,10 +1045,8 @@ export function getStripDayStatus(
     }
     const anchor = prevCompletion ?? firstCompletion;
     const daysFromAnchor = getDaysBetween(anchor, dateStr);
-    if (daysFromAnchor <= f) return 'empty'; // inside the cadence window
-    // First day past the window → missed_once (the warning bar). Every
-    // day after that without a completion → missed_twice.
-    if (daysFromAnchor === f + 1) return 'missed_once';
+    if (daysFromAnchor < f) return 'empty'; // inside the cadence window
+    if (daysFromAnchor === f) return 'missed_once';
     return 'missed_twice';
   }
 

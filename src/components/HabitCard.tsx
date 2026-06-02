@@ -6,8 +6,9 @@ import { HabitWithStatus, getFrequencyLabel } from '../types/habit';
 import { useTheme } from '../hooks/useTheme';
 import { ThemeColors } from '../constants/colors';
 import { getToday } from '../utils/dateUtils';
+import { detectMilestone, milestoneFlagKey, Milestone } from '../utils/milestones';
 import { NoteEditorModal } from './NoteEditorModal';
-import { HabitCompletedModal } from './HabitCompletedModal';
+import { MilestoneModal } from './MilestoneModal';
 
 interface HabitCardProps {
   habit: HabitWithStatus;
@@ -73,11 +74,11 @@ export function HabitCard({ habit, onToggle, onSaveNote, onSkip, onIncrement }: 
           alignItems: 'center',
           justifyContent: 'space-between',
           backgroundColor: colors.card,
-          borderRadius: 16,
-          padding: 16,
-          marginHorizontal: 16,
-          marginVertical: 6,
-          borderLeftWidth: 4,
+          borderRadius: 20,
+          padding: 14,
+          marginHorizontal: 20,
+          marginVertical: 5,
+          borderWidth: 1,
           borderColor: colors.cardBorder,
         },
         leftSection: {
@@ -85,9 +86,16 @@ export function HabitCard({ habit, onToggle, onSaveNote, onSkip, onIncrement }: 
           alignItems: 'center',
           flex: 1,
         },
+        emojiWrap: {
+          width: 48,
+          height: 48,
+          borderRadius: 14,
+          alignItems: 'center',
+          justifyContent: 'center',
+          marginRight: 12,
+        },
         emoji: {
-          fontSize: 32,
-          marginRight: 14,
+          fontSize: 26,
         },
         textContainer: {
           flex: 1,
@@ -103,7 +111,18 @@ export function HabitCard({ habit, onToggle, onSaveNote, onSkip, onIncrement }: 
         statusLabel: {
           fontSize: 13,
           marginTop: 3,
-          fontWeight: '500',
+          fontWeight: '600',
+        },
+        progressTrack: {
+          height: 5,
+          borderRadius: 3,
+          backgroundColor: colors.inputBackground,
+          marginTop: 7,
+          overflow: 'hidden',
+        },
+        progressFill: {
+          height: 5,
+          borderRadius: 3,
         },
         frequencyLabel: {
           fontSize: 11,
@@ -156,7 +175,7 @@ export function HabitCard({ habit, onToggle, onSaveNote, onSkip, onIncrement }: 
 
   const scaleAnim = useRef(new Animated.Value(1)).current;
   const [noteOpen, setNoteOpen] = useState(false);
-  const [celebrationOpen, setCelebrationOpen] = useState(false);
+  const [milestone, setMilestone] = useState<Milestone | null>(null);
   const today = getToday();
   const hasNoteToday = Boolean(habit.notes[today]);
 
@@ -195,19 +214,22 @@ export function HabitCard({ habit, onToggle, onSaveNote, onSkip, onIncrement }: 
       await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
     }
 
-    // Detect "user just turned today on" BEFORE we toggle — if today is the
-    // habit's declared end date and we're flipping completed:false→true,
-    // fire the one-shot congratulations modal. Keyed per (habit, endDate)
-    // so re-ticks after un-ticks won't re-celebrate, but extending the
-    // campaign with a new end date will let it fire again.
+    // Detect "user just turned today on" BEFORE we toggle — if this
+    // completion unlocks a milestone (streak threshold, personal best, or
+    // finishing a finite goal), fire the celebration popup. Each milestone
+    // is gated by a one-shot AsyncStorage flag so re-ticking after an
+    // un-tick won't re-celebrate the same achievement.
     const wasCompletedToday = habit.completions.includes(today);
     const turningOn = !wasCompletedToday;
-    if (turningOn && habit.endDate && habit.endDate === today) {
-      const flagKey = `celebrated:${habit.id}:${habit.endDate}`;
-      const already = await AsyncStorage.getItem(flagKey);
-      if (!already) {
-        await AsyncStorage.setItem(flagKey, '1');
-        setCelebrationOpen(true);
+    if (turningOn) {
+      const detected = detectMilestone(habit, today);
+      if (detected) {
+        const flagKey = milestoneFlagKey(habit.id, detected);
+        const already = await AsyncStorage.getItem(flagKey);
+        if (!already) {
+          await AsyncStorage.setItem(flagKey, '1');
+          setMilestone(detected);
+        }
       }
     }
 
@@ -249,14 +271,19 @@ export function HabitCard({ habit, onToggle, onSaveNote, onSkip, onIncrement }: 
           style={[
             styles.card,
             {
-              borderLeftColor: isSkippedToday ? colors.cellSkipped : statusColor,
-              backgroundColor: isCompleted ? colors.card : colors.card,
+              borderColor: isSkippedToday
+                ? colors.cellSkipped
+                : isCompleted
+                  ? colors.completed
+                  : colors.cardBorder,
               opacity: isSkippedToday ? 0.6 : 1,
             },
           ]}
         >
           <View style={styles.leftSection}>
-            <Text style={styles.emoji}>{habit.emoji}</Text>
+            <View style={[styles.emojiWrap, { backgroundColor: `${habit.color}22` }]}>
+              <Text style={styles.emoji}>{habit.emoji}</Text>
+            </View>
             <View style={styles.textContainer}>
               <Text style={[styles.name, isCompleted && styles.nameCompleted]}>{habit.name}</Text>
               <Text style={[styles.statusLabel, { color: statusColor }]}>
@@ -264,6 +291,19 @@ export function HabitCard({ habit, onToggle, onSaveNote, onSkip, onIncrement }: 
                   ? `${todayCount}/${habit.target} ${habit.unit ?? ''}`.trim()
                   : getStatusLabel(habit)}
               </Text>
+              {isMeasurable && habit.target !== null && (
+                <View style={styles.progressTrack}>
+                  <View
+                    style={[
+                      styles.progressFill,
+                      {
+                        backgroundColor: habit.color,
+                        width: `${Math.min(100, Math.round((todayCount / habit.target) * 100))}%`,
+                      },
+                    ]}
+                  />
+                </View>
+              )}
               {!(
                 (habit.frequency.kind === 'interval' && habit.frequency.days === 1) ||
                 (habit.frequency.kind === 'weekdays' && habit.frequency.weekdays.length === 7)
@@ -310,10 +350,11 @@ export function HabitCard({ habit, onToggle, onSaveNote, onSkip, onIncrement }: 
         onSave={onSaveNote}
       />
 
-      <HabitCompletedModal
-        visible={celebrationOpen}
+      <MilestoneModal
+        visible={milestone !== null}
         habit={habit}
-        onClose={() => setCelebrationOpen(false)}
+        milestone={milestone}
+        onClose={() => setMilestone(null)}
       />
     </>
   );

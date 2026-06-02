@@ -16,7 +16,7 @@ interface CampaignGridProps {
 interface CampaignCell {
   dateStr: string;
   /** A due slot's representative date for status, == dateStr for interval/weekday. */
-  status: 'completed' | 'missed_twice' | 'skipped' | 'empty' | 'future';
+  status: 'completed' | 'missed_once' | 'missed_twice' | 'skipped' | 'empty' | 'future';
 }
 
 const CELL_SIZE = 38;

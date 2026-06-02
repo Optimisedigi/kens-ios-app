@@ -47,3 +47,6 @@ kens-ios-app/
 
 # agent planning docs (local-only)
 .gg/
+
+# Claude Code MCP config (contains API token)
+.mcp.json
