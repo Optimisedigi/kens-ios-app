@@ -5,6 +5,7 @@ module.exports = (config) => ({
   displayName: 'Never Miss Twice',
   bundleIdentifier: 'com.optimisedigital.nevermisstwice.watchkitapp',
   deploymentTarget: '10.0',
+  icon: '../../assets/images/icon.png',
   colors: {
     $accent: '#818CF8',
   },
